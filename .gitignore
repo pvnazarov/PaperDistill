@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-electron/
+build/
+out/
+release/
+*.tsbuildinfo
+
+# Vite
+.vite/
+
+# Electron packaging
+*.dmg
+*.exe
+*.AppImage
+*.deb
+*.snap
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# App runtime output (generated during actual use, not part of the repo)
+paperdistill_run_log.jsonl
+*.paperdistill.json
