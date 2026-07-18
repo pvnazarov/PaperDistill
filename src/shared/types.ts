@@ -95,6 +95,7 @@ export interface PaperDistillAPI {
   selectPdfFolder(): Promise<string | null>;
   selectPromptFile(): Promise<string | null>;
   selectOutputFolder(): Promise<string | null>;
+  getDefaultPromptPath(): Promise<string>;
   scanPdfFolder(options: ScanPdfFolderOptions): Promise<PdfJob[]>;
   onScanStarted(callback: (jobs: PdfJob[]) => void): () => void;
   onScanProgress(callback: (job: PdfJob) => void): () => void;

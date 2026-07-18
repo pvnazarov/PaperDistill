@@ -11,6 +11,8 @@
 
 import { useEffect, useState } from "react";
 import type { AppConfig, EnvKeyStatus, LLMProviderName, PdfJob } from "../shared/types";
+import appIcon from "./assets/app-icon.png";
+import lihLogo from "./assets/lih-logo.png";
 import FolderPicker from "./components/FolderPicker";
 import PromptFilePicker from "./components/PromptFilePicker";
 import OutputFolderPicker from "./components/OutputFolderPicker";
@@ -178,6 +180,11 @@ function App() {
     if (file) setPromptFile(file);
   }
 
+  async function handleUseDefaultPrompt() {
+    const file = await window.api.getDefaultPromptPath();
+    setPromptFile(file);
+  }
+
   async function handleSelectOutputFolder() {
     const folder = await window.api.selectOutputFolder();
     if (folder) setOutputFolder(folder);
@@ -258,14 +265,22 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>PaperDistill</h1>
-        <p className="app-subtitle">
-          Batch-convert scientific PDF papers into structured, AI-ready Markdown.
-        </p>
+        <img src={appIcon} alt="PaperDistill" className="app-header-icon" />
+        <div className="app-header-text">
+          <h1>PaperDistill</h1>
+          <p className="app-subtitle">
+            Batch-convert scientific PDF papers into structured, AI-ready Markdown.
+          </p>
+        </div>
+        <img src={lihLogo} alt="Luxembourg Institute of Health" className="app-header-lih-logo" />
       </header>
       <main className="app-main">
         <FolderPicker value={pdfFolder} onSelect={handleSelectPdfFolder} />
-        <PromptFilePicker value={promptFile} onSelect={handleSelectPromptFile} />
+        <PromptFilePicker
+          value={promptFile}
+          onSelect={handleSelectPromptFile}
+          onUseDefault={handleUseDefaultPrompt}
+        />
         <OutputFolderPicker value={outputFolder} onSelect={handleSelectOutputFolder} />
 
         <ProviderSettings

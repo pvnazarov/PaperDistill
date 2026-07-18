@@ -9,7 +9,7 @@
  * See LICENSE for details.
  */
 
-import { BrowserWindow, ipcMain, shell } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import path from "node:path";
 import { discoverPdfFiles, selectOutputFolder, selectPdfFolder, selectPromptFile } from "./fileSystem";
 import { extractPdfText } from "./pdfExtract";
@@ -120,6 +120,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle("fs:selectPdfFolder", () => selectPdfFolder(mainWindow));
   ipcMain.handle("fs:selectPromptFile", () => selectPromptFile(mainWindow));
   ipcMain.handle("fs:selectOutputFolder", () => selectOutputFolder(mainWindow));
+  ipcMain.handle("fs:getDefaultPromptPath", (): string =>
+    path.join(app.getAppPath(), "default_prompt.txt"),
+  );
   ipcMain.handle("pdf:scan", (_event, options: ScanPdfFolderOptions) =>
     scanPdfFolder(mainWindow, options),
   );

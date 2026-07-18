@@ -47,3 +47,6 @@ Thumbs.db
 # App runtime output (generated during actual use, not part of the repo)
 paperdistill_run_log.jsonl
 *.paperdistill.json
+
+# Generated at build/dev time by scripts/generate-build-info.mjs
+src/main/buildInfo.ts

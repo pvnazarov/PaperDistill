@@ -20,8 +20,29 @@ body {
 }
 
 .app-header {
-  padding: 24px 32px;
+  padding: 16px 32px;
   border-bottom: 1px solid #33353a;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.app-header-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 15px;
+  flex-shrink: 0;
+}
+
+.app-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-header-lih-logo {
+  height: 60px;
+  width: auto;
+  flex-shrink: 0;
 }
 
 .app-header h1 {

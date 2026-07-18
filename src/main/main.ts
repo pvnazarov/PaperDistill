@@ -9,10 +9,11 @@
  * See LICENSE for details.
  */
 
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu } from "electron";
 import path from "node:path";
 import dotenv from "dotenv";
 import { registerIpcHandlers } from "./ipc";
+import { buildApplicationMenu } from "./menu";
 
 // Loads from the project root in dev, and from the packaged app's directory
 // when built. Never overrides variables already present in the environment.
@@ -35,6 +36,7 @@ function createMainWindow(): void {
     },
   });
 
+  Menu.setApplicationMenu(buildApplicationMenu(mainWindow));
   registerIpcHandlers(mainWindow);
 
   if (isDev) {
