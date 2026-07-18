@@ -1,3 +1,14 @@
+/*
+ * PaperDistill
+ * Copyright (c) 2026 Petr Nazarov, Luxembourg Institute of Health (LIH)
+ *
+ * Released under the MIT License.
+ * Developed with significant assistance from Anthropic Claude Code.
+ * Responsibility for any bugs remains under active investigation.
+ *
+ * See LICENSE for details.
+ */
+
 import { contextBridge, ipcRenderer } from "electron";
 import type { PaperDistillAPI, PdfJob } from "../shared/types";
 
@@ -24,6 +35,9 @@ const api: PaperDistillAPI = {
   },
   getEnvKeyStatus: () => ipcRenderer.invoke("env:getKeyStatus"),
   testOllamaConnection: (baseUrl) => ipcRenderer.invoke("ollama:testConnection", baseUrl),
+  testAnthropicConnection: (apiKey, model) =>
+    ipcRenderer.invoke("anthropic:testConnection", apiKey, model),
+  testOpenAIConnection: (apiKey, model) => ipcRenderer.invoke("openai:testConnection", apiKey, model),
   pauseBatch: () => ipcRenderer.invoke("batch:pause"),
   resumeBatch: () => ipcRenderer.invoke("batch:resume"),
   cancelBatch: () => ipcRenderer.invoke("batch:cancel"),

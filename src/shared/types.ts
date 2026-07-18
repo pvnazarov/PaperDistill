@@ -1,3 +1,14 @@
+/*
+ * PaperDistill
+ * Copyright (c) 2026 Petr Nazarov, Luxembourg Institute of Health (LIH)
+ *
+ * Released under the MIT License.
+ * Developed with significant assistance from Anthropic Claude Code.
+ * Responsibility for any bugs remains under active investigation.
+ *
+ * See LICENSE for details.
+ */
+
 export type JobStatus =
   | "pending"
   | "processing"
@@ -71,9 +82,12 @@ export interface EnvKeyStatus {
   openaiKeyPresent: boolean;
 }
 
-export interface OllamaConnectionTestResult {
+export interface ConnectionTestResult {
   ok: boolean;
   message: string;
+}
+
+export interface OllamaConnectionTestResult extends ConnectionTestResult {
   models?: string[];
 }
 
@@ -88,6 +102,8 @@ export interface PaperDistillAPI {
   onBatchProgress(callback: (job: PdfJob) => void): () => void;
   getEnvKeyStatus(): Promise<EnvKeyStatus>;
   testOllamaConnection(baseUrl: string): Promise<OllamaConnectionTestResult>;
+  testAnthropicConnection(apiKey: string, model: string): Promise<ConnectionTestResult>;
+  testOpenAIConnection(apiKey: string, model: string): Promise<ConnectionTestResult>;
   pauseBatch(): Promise<void>;
   resumeBatch(): Promise<void>;
   cancelBatch(): Promise<void>;

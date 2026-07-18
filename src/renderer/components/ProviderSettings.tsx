@@ -1,4 +1,15 @@
-import { useState } from "react";
+/*
+ * PaperDistill
+ * Copyright (c) 2026 Petr Nazarov, Luxembourg Institute of Health (LIH)
+ *
+ * Released under the MIT License.
+ * Developed with significant assistance from Anthropic Claude Code.
+ * Responsibility for any bugs remains under active investigation.
+ *
+ * See LICENSE for details.
+ */
+
+import { useEffect, useState } from "react";
 import type { EnvKeyStatus, LLMProviderName } from "../../shared/types";
 
 interface ProviderSettingsProps {
@@ -31,11 +42,20 @@ function ProviderSettings({
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
 
-  async function handleTestOllamaConnection() {
+  useEffect(() => {
+    setTestResult(null);
+  }, [providerName]);
+
+  async function handleTestConnection() {
     setTesting(true);
     setTestResult(null);
     try {
-      const result = await window.api.testOllamaConnection(ollamaUrl);
+      const result =
+        providerName === "ollama"
+          ? await window.api.testOllamaConnection(ollamaUrl)
+          : providerName === "anthropic"
+            ? await window.api.testAnthropicConnection(anthropicApiKey, model)
+            : await window.api.testOpenAIConnection(openaiApiKey, model);
       setTestResult(result.message);
     } catch (error) {
       setTestResult(error instanceof Error ? error.message : String(error));
@@ -103,6 +123,10 @@ function ProviderSettings({
                 ? "ANTHROPIC_API_KEY found in .env (used unless overridden above)"
                 : "No ANTHROPIC_API_KEY found in .env"}
             </span>
+            <button type="button" onClick={handleTestConnection} disabled={testing}>
+              {testing ? "Testing…" : "Test Connection"}
+            </button>
+            {testResult && <span className="field-value">{testResult}</span>}
           </div>
         </div>
       )}
@@ -126,6 +150,10 @@ function ProviderSettings({
                 ? "OPENAI_API_KEY found in .env (used unless overridden above)"
                 : "No OPENAI_API_KEY found in .env"}
             </span>
+            <button type="button" onClick={handleTestConnection} disabled={testing}>
+              {testing ? "Testing…" : "Test Connection"}
+            </button>
+            {testResult && <span className="field-value">{testResult}</span>}
           </div>
         </div>
       )}
@@ -140,7 +168,7 @@ function ProviderSettings({
               onChange={(e) => onOllamaUrlChange(e.target.value)}
               placeholder="http://localhost:11434"
             />
-            <button type="button" onClick={handleTestOllamaConnection} disabled={testing}>
+            <button type="button" onClick={handleTestConnection} disabled={testing}>
               {testing ? "Testing…" : "Test Connection"}
             </button>
             {testResult && <span className="field-value">{testResult}</span>}

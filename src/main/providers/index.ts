@@ -1,3 +1,14 @@
+/*
+ * PaperDistill
+ * Copyright (c) 2026 Petr Nazarov, Luxembourg Institute of Health (LIH)
+ *
+ * Released under the MIT License.
+ * Developed with significant assistance from Anthropic Claude Code.
+ * Responsibility for any bugs remains under active investigation.
+ *
+ * See LICENSE for details.
+ */
+
 import type { ProviderConfig } from "../../shared/types";
 import type { LLMProvider } from "./base";
 import { AnthropicProvider } from "./anthropicProvider";
@@ -36,3 +47,5 @@ export function createProvider(config: ProviderConfig): LLMProvider {
 }
 
 export { testOllamaConnection } from "./ollamaProvider";
+export { testAnthropicConnection } from "./anthropicProvider";
+export { testOpenAIConnection } from "./openaiProvider";

@@ -1,10 +1,22 @@
-import { BrowserWindow, dialog } from "electron";
+/*
+ * PaperDistill
+ * Copyright (c) 2026 Petr Nazarov, Luxembourg Institute of Health (LIH)
+ *
+ * Released under the MIT License.
+ * Developed with significant assistance from Anthropic Claude Code.
+ * Responsibility for any bugs remains under active investigation.
+ *
+ * See LICENSE for details.
+ */
+
+import { app, BrowserWindow, dialog } from "electron";
 import fs from "node:fs/promises";
 import path from "node:path";
 
 export async function selectPdfFolder(window: BrowserWindow): Promise<string | null> {
   const result = await dialog.showOpenDialog(window, {
     title: "Select PDF Folder",
+    defaultPath: app.getPath("documents"),
     properties: ["openDirectory"],
   });
   if (result.canceled || result.filePaths.length === 0) {
@@ -16,6 +28,7 @@ export async function selectPdfFolder(window: BrowserWindow): Promise<string | n
 export async function selectPromptFile(window: BrowserWindow): Promise<string | null> {
   const result = await dialog.showOpenDialog(window, {
     title: "Select Prompt TXT File",
+    defaultPath: app.getPath("documents"),
     properties: ["openFile"],
     filters: [{ name: "Text Files", extensions: ["txt"] }],
   });
@@ -53,6 +66,7 @@ export async function discoverPdfFiles(
 export async function selectOutputFolder(window: BrowserWindow): Promise<string | null> {
   const result = await dialog.showOpenDialog(window, {
     title: "Select Output Folder",
+    defaultPath: app.getPath("documents"),
     properties: ["openDirectory", "createDirectory"],
   });
   if (result.canceled || result.filePaths.length === 0) {

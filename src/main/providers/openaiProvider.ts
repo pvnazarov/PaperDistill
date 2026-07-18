@@ -1,5 +1,17 @@
+/*
+ * PaperDistill
+ * Copyright (c) 2026 Petr Nazarov, Luxembourg Institute of Health (LIH)
+ *
+ * Released under the MIT License.
+ * Developed with significant assistance from Anthropic Claude Code.
+ * Responsibility for any bugs remains under active investigation.
+ *
+ * See LICENSE for details.
+ */
+
 import OpenAI from "openai";
 import type { LLMInput, LLMOutput, LLMProvider } from "./base";
+import type { ConnectionTestResult } from "../../shared/types";
 
 export interface OpenAIProviderOptions {
   apiKey: string;
@@ -44,5 +56,28 @@ export class OpenAIProvider implements LLMProvider {
     } catch (error) {
       throw new Error(describeError(error));
     }
+  }
+}
+
+export async function testOpenAIConnection(
+  apiKey: string,
+  model: string,
+): Promise<ConnectionTestResult> {
+  if (!apiKey) {
+    return {
+      ok: false,
+      message: "No OpenAI API key available. Set OPENAI_API_KEY in .env or paste one above.",
+    };
+  }
+  if (!model.trim()) {
+    return { ok: false, message: "Enter a model name to test." };
+  }
+
+  try {
+    const client = new OpenAI({ apiKey });
+    const info = await client.models.retrieve(model.trim());
+    return { ok: true, message: `Connected. Model "${info.id}" is available.` };
+  } catch (error) {
+    return { ok: false, message: describeError(error) };
   }
 }

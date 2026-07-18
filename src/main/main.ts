@@ -1,3 +1,14 @@
+/*
+ * PaperDistill
+ * Copyright (c) 2026 Petr Nazarov, Luxembourg Institute of Health (LIH)
+ *
+ * Released under the MIT License.
+ * Developed with significant assistance from Anthropic Claude Code.
+ * Responsibility for any bugs remains under active investigation.
+ *
+ * See LICENSE for details.
+ */
+
 import { app, BrowserWindow } from "electron";
 import path from "node:path";
 import dotenv from "dotenv";
@@ -15,6 +26,7 @@ function createMainWindow(): void {
     width: 1200,
     height: 800,
     title: "PaperDistill",
+    icon: path.join(app.getAppPath(), "build/icon.png"),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,

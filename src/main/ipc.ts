@@ -1,12 +1,29 @@
+/*
+ * PaperDistill
+ * Copyright (c) 2026 Petr Nazarov, Luxembourg Institute of Health (LIH)
+ *
+ * Released under the MIT License.
+ * Developed with significant assistance from Anthropic Claude Code.
+ * Responsibility for any bugs remains under active investigation.
+ *
+ * See LICENSE for details.
+ */
+
 import { BrowserWindow, ipcMain, shell } from "electron";
 import path from "node:path";
 import { discoverPdfFiles, selectOutputFolder, selectPdfFolder, selectPromptFile } from "./fileSystem";
 import { extractPdfText } from "./pdfExtract";
 import { BatchControl, runBatch } from "./batchRunner";
-import { createProvider, testOllamaConnection } from "./providers";
+import {
+  createProvider,
+  testAnthropicConnection,
+  testOllamaConnection,
+  testOpenAIConnection,
+} from "./providers";
 import { loadConfig, saveConfig } from "./configStore";
 import type {
   AppConfig,
+  ConnectionTestResult,
   EnvKeyStatus,
   OllamaConnectionTestResult,
   PdfJob,
@@ -113,6 +130,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle(
     "ollama:testConnection",
     (_event, baseUrl: string): Promise<OllamaConnectionTestResult> => testOllamaConnection(baseUrl),
+  );
+  ipcMain.handle(
+    "anthropic:testConnection",
+    (_event, apiKey: string, model: string): Promise<ConnectionTestResult> =>
+      testAnthropicConnection(apiKey || process.env.ANTHROPIC_API_KEY || "", model),
+  );
+  ipcMain.handle(
+    "openai:testConnection",
+    (_event, apiKey: string, model: string): Promise<ConnectionTestResult> =>
+      testOpenAIConnection(apiKey || process.env.OPENAI_API_KEY || "", model),
   );
   ipcMain.handle("batch:pause", () => {
     activeBatchControl?.pause();
