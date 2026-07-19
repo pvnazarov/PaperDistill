@@ -9,12 +9,54 @@
  * See LICENSE for details.
  */
 
-import OpenAI from "openai";
+import OpenAI, { type RateLimitError } from "openai";
 import type { LLMInput, LLMOutput, LLMProvider } from "./base";
 import type { ConnectionTestResult } from "../../shared/types";
 
+// Mirrors Anthropic's DEFAULT_MAX_TOKENS: bounds any single response so a
+// runaway generation can't consume an outsized share of the TPM budget.
+const MAX_OUTPUT_TOKENS = 8192;
+
+const MAX_RATE_LIMIT_RETRIES = 5;
+const BASE_BACKOFF_MS = 2000;
+const MAX_BACKOFF_MS = 60000;
+
 export interface OpenAIProviderOptions {
   apiKey: string;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Rate-limit-only backoff: honors the Retry-After header when OpenAI sends one, otherwise exponential + jitter. */
+function backoffDelayMs(attempt: number, error: RateLimitError): number {
+  const retryAfterHeader = error.headers?.get?.("retry-after");
+  const retryAfterSeconds = retryAfterHeader ? Number(retryAfterHeader) : NaN;
+  if (Number.isFinite(retryAfterSeconds)) {
+    return retryAfterSeconds * 1000;
+  }
+  const exponential = Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS);
+  return exponential + Math.random() * exponential * 0.25;
+}
+
+/**
+ * Retries only on HTTP 429 with code "rate_limit_exceeded" (transient, RPM/TPM throttling).
+ * "insufficient_quota" is a billing/quota wall that retrying can never fix, so it fails immediately.
+ */
+async function withRateLimitRetry<T>(fn: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      const isRateLimit = error instanceof OpenAI.RateLimitError;
+      const isQuotaExhausted = isRateLimit && error.code === "insufficient_quota";
+      if (!isRateLimit || isQuotaExhausted || attempt >= MAX_RATE_LIMIT_RETRIES) {
+        throw error;
+      }
+      await sleep(backoffDelayMs(attempt, error));
+    }
+  }
 }
 
 function describeError(error: unknown): string {
@@ -23,6 +65,12 @@ function describeError(error: unknown): string {
   }
   if (error instanceof OpenAI.NotFoundError) {
     return "OpenAI model was not found or is unavailable. Check the model name.";
+  }
+  if (error instanceof OpenAI.RateLimitError) {
+    if (error.code === "insufficient_quota") {
+      return "OpenAI quota exhausted (insufficient_quota). Check billing/usage limits in your OpenAI account — retrying will not help.";
+    }
+    return `OpenAI rate limit exceeded after repeated retries: ${error.message}`;
   }
   if (error instanceof OpenAI.APIError) {
     return `OpenAI API error (${error.status ?? "unknown"}): ${error.message}`;
@@ -39,13 +87,16 @@ export class OpenAIProvider implements LLMProvider {
 
   async generateMarkdown(input: LLMInput): Promise<LLMOutput> {
     try {
-      const response = await this.client.responses.create({
-        model: input.model,
-        instructions: input.systemPrompt,
-        input: input.userPrompt,
-        temperature: input.temperature,
-        store: false,
-      });
+      const response = await withRateLimitRetry(() =>
+        this.client.responses.create({
+          model: input.model,
+          instructions: input.systemPrompt,
+          input: input.userPrompt,
+          temperature: input.temperature,
+          max_output_tokens: MAX_OUTPUT_TOKENS,
+          store: false,
+        }),
+      );
 
       const text = response.output_text;
       if (!text) {

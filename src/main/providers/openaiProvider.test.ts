@@ -9,7 +9,7 @@
  * See LICENSE for details.
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockCreate = vi.fn();
 
@@ -23,11 +23,21 @@ vi.mock("openai", () => {
   }
   class AuthenticationError extends APIError {}
   class NotFoundError extends APIError {}
+  class RateLimitError extends APIError {
+    code?: string;
+    headers?: Headers;
+    constructor(message: string, code?: string, headers?: Headers) {
+      super(message, 429);
+      this.code = code;
+      this.headers = headers;
+    }
+  }
 
   class OpenAI {
     static APIError = APIError;
     static AuthenticationError = AuthenticationError;
     static NotFoundError = NotFoundError;
+    static RateLimitError = RateLimitError;
     responses = { create: mockCreate };
     constructor(_opts: unknown) {}
   }
@@ -90,5 +100,86 @@ describe("OpenAIProvider", () => {
     await expect(
       provider.generateMarkdown({ systemPrompt: "sys", userPrompt: "user", model: "gpt-4o" }),
     ).rejects.toThrow("OpenAI response did not contain any text content.");
+  });
+
+  describe("rate-limit retry", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("retries on rate_limit_exceeded and succeeds once the limit clears", async () => {
+      mockCreate
+        .mockRejectedValueOnce(new OpenAIMocked.RateLimitError("rate limited", "rate_limit_exceeded"))
+        .mockRejectedValueOnce(new OpenAIMocked.RateLimitError("rate limited", "rate_limit_exceeded"))
+        .mockResolvedValueOnce({ output_text: "# Recovered" });
+      const provider = new OpenAIProvider({ apiKey: "test-key" });
+
+      const resultPromise = provider.generateMarkdown({
+        systemPrompt: "sys",
+        userPrompt: "user",
+        model: "gpt-4o",
+      });
+      await vi.advanceTimersByTimeAsync(60000);
+      const result = await resultPromise;
+
+      expect(result.text).toBe("# Recovered");
+      expect(mockCreate).toHaveBeenCalledTimes(3);
+    });
+
+    it("does not retry on insufficient_quota", async () => {
+      mockCreate.mockRejectedValueOnce(
+        new OpenAIMocked.RateLimitError("no quota", "insufficient_quota"),
+      );
+      const provider = new OpenAIProvider({ apiKey: "test-key" });
+
+      await expect(
+        provider.generateMarkdown({ systemPrompt: "sys", userPrompt: "user", model: "gpt-4o" }),
+      ).rejects.toThrow("OpenAI quota exhausted (insufficient_quota)");
+      expect(mockCreate).toHaveBeenCalledTimes(1);
+    });
+
+    it("gives up after repeated rate-limit errors", async () => {
+      mockCreate.mockRejectedValue(
+        new OpenAIMocked.RateLimitError("rate limited", "rate_limit_exceeded"),
+      );
+      const provider = new OpenAIProvider({ apiKey: "test-key" });
+
+      const resultPromise = provider.generateMarkdown({
+        systemPrompt: "sys",
+        userPrompt: "user",
+        model: "gpt-4o",
+      });
+      resultPromise.catch(() => {});
+      await vi.advanceTimersByTimeAsync(10 * 60000);
+
+      await expect(resultPromise).rejects.toThrow(
+        "OpenAI rate limit exceeded after repeated retries",
+      );
+      expect(mockCreate).toHaveBeenCalledTimes(6);
+    });
+
+    it("honors the Retry-After header instead of exponential backoff", async () => {
+      const headers = new Headers({ "retry-after": "5" });
+      mockCreate
+        .mockRejectedValueOnce(
+          new OpenAIMocked.RateLimitError("rate limited", "rate_limit_exceeded", headers),
+        )
+        .mockResolvedValueOnce({ output_text: "# Recovered" });
+      const provider = new OpenAIProvider({ apiKey: "test-key" });
+
+      const resultPromise = provider.generateMarkdown({
+        systemPrompt: "sys",
+        userPrompt: "user",
+        model: "gpt-4o",
+      });
+      await vi.advanceTimersByTimeAsync(5000);
+      const result = await resultPromise;
+
+      expect(result.text).toBe("# Recovered");
+    });
   });
 });

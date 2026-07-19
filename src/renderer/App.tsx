@@ -9,7 +9,7 @@
  * See LICENSE for details.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AppConfig, EnvKeyStatus, LLMProviderName, PdfJob } from "../shared/types";
 import appIcon from "./assets/app-icon.png";
 import lihLogo from "./assets/lih-logo.png";
@@ -32,6 +32,10 @@ function basename(filePath: string): string {
 
 function timestamp(): string {
   return new Date().toLocaleTimeString("en-GB", { hour12: false });
+}
+
+function formatElapsed(startedAtMs: number): string {
+  return `${((Date.now() - startedAtMs) / 1000).toFixed(1)}s`;
 }
 
 function App() {
@@ -63,6 +67,7 @@ function App() {
   const [ollamaUrl, setOllamaUrl] = useState(DEFAULT_OLLAMA_URL);
   const [envKeyStatus, setEnvKeyStatus] = useState<EnvKeyStatus | null>(null);
   const [configLoaded, setConfigLoaded] = useState(false);
+  const jobStartTimesRef = useRef<Map<string, number>>(new Map());
 
   const model = providerName === "anthropic" ? anthropicModel : providerName === "openai" ? openaiModel : ollamaModel;
 
@@ -151,15 +156,25 @@ function App() {
         prev.map((job) => (job.filePath === updatedJob.filePath ? updatedJob : job)),
       );
       if (updatedJob.status === "processing") {
-        appendLog(`Processing ${updatedJob.fileName}`);
-      } else if (updatedJob.status === "success") {
-        appendLog(`Success: ${updatedJob.outputPath ? basename(updatedJob.outputPath) : updatedJob.fileName}`);
-      } else if (updatedJob.status === "warning") {
-        appendLog(`Warning: ${updatedJob.fileName} — ${updatedJob.errorMessage ?? ""}`);
-      } else if (updatedJob.status === "failed") {
-        appendLog(`Failed: ${updatedJob.fileName} — ${updatedJob.errorMessage ?? ""}`);
-      } else if (updatedJob.status === "skipped") {
-        appendLog(`Skipped: ${updatedJob.fileName} — ${updatedJob.errorMessage ?? ""}`);
+        if (!jobStartTimesRef.current.has(updatedJob.filePath)) {
+          jobStartTimesRef.current.set(updatedJob.filePath, Date.now());
+          appendLog(`Processing ${updatedJob.fileName}`);
+        }
+      } else {
+        const startedAt = jobStartTimesRef.current.get(updatedJob.filePath);
+        jobStartTimesRef.current.delete(updatedJob.filePath);
+        const elapsed = startedAt !== undefined ? ` (${formatElapsed(startedAt)})` : "";
+        if (updatedJob.status === "success") {
+          appendLog(
+            `Success: ${updatedJob.outputPath ? basename(updatedJob.outputPath) : updatedJob.fileName}${elapsed}`,
+          );
+        } else if (updatedJob.status === "warning") {
+          appendLog(`Warning: ${updatedJob.fileName} — ${updatedJob.errorMessage ?? ""}${elapsed}`);
+        } else if (updatedJob.status === "failed") {
+          appendLog(`Failed: ${updatedJob.fileName} — ${updatedJob.errorMessage ?? ""}${elapsed}`);
+        } else if (updatedJob.status === "skipped") {
+          appendLog(`Skipped: ${updatedJob.fileName} — ${updatedJob.errorMessage ?? ""}${elapsed}`);
+        }
       }
     });
     return () => {
@@ -193,10 +208,11 @@ function App() {
     if (!pdfFolder) return;
     setScanning(true);
     setScanError(null);
+    const startedAt = Date.now();
     try {
       const result = await window.api.scanPdfFolder({ folderPath: pdfFolder, recursive });
       setJobs(result);
-      appendLog(`Scanned ${result.length} PDFs.`);
+      appendLog(`Scanned ${result.length} PDFs. (${formatElapsed(startedAt)})`);
     } catch (error) {
       setScanError(error instanceof Error ? error.message : String(error));
     } finally {
@@ -209,6 +225,7 @@ function App() {
     setRunning(true);
     setPaused(false);
     setRunError(null);
+    const startedAt = Date.now();
     appendLog(`Starting batch: ${jobs.length} PDFs.`);
     try {
       const result = await window.api.startBatch({
@@ -230,7 +247,7 @@ function App() {
         chunkOverlapChars,
       });
       setJobs(result);
-      appendLog("Batch complete.");
+      appendLog(`Batch complete. (${formatElapsed(startedAt)})`);
     } catch (error) {
       setRunError(error instanceof Error ? error.message : String(error));
     } finally {
