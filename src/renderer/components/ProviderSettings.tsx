@@ -26,6 +26,15 @@ interface ProviderSettingsProps {
   envKeyStatus: EnvKeyStatus | null;
 }
 
+const PROVIDER_LABELS: Record<LLMProviderName, string> = {
+  anthropic: "Anthropic",
+  openai: "OpenAI",
+  ollama: "Ollama",
+};
+
+const LOCAL_OLLAMA_URL = "http://localhost:11434";
+const MODEL_FETCH_DEBOUNCE_MS = 500;
+
 function ProviderSettings({
   providerName,
   onProviderNameChange,
@@ -41,28 +50,46 @@ function ProviderSettings({
 }: ProviderSettingsProps) {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [ollamaModels, setOllamaModels] = useState<string[]>([]);
 
   useEffect(() => {
     setTestResult(null);
   }, [providerName]);
 
+  useEffect(() => {
+    if (providerName !== "ollama") return;
+    const timer = setTimeout(() => {
+      window.api
+        .testOllamaConnection(ollamaUrl)
+        .then((result) => setOllamaModels(result.ok && result.models ? result.models : []))
+        .catch(() => setOllamaModels([]));
+    }, MODEL_FETCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [providerName, ollamaUrl]);
+
   async function handleTestConnection() {
     setTesting(true);
     setTestResult(null);
     try {
-      const result =
-        providerName === "ollama"
-          ? await window.api.testOllamaConnection(ollamaUrl)
-          : providerName === "anthropic"
-            ? await window.api.testAnthropicConnection(anthropicApiKey, model)
-            : await window.api.testOpenAIConnection(openaiApiKey, model);
-      setTestResult(result.message);
+      if (providerName === "ollama") {
+        const result = await window.api.testOllamaConnection(ollamaUrl);
+        setTestResult(result.message);
+        setOllamaModels(result.ok && result.models ? result.models : []);
+      } else if (providerName === "anthropic") {
+        const result = await window.api.testAnthropicConnection(anthropicApiKey, model);
+        setTestResult(result.message);
+      } else {
+        const result = await window.api.testOpenAIConnection(openaiApiKey, model);
+        setTestResult(result.message);
+      }
     } catch (error) {
       setTestResult(error instanceof Error ? error.message : String(error));
     } finally {
       setTesting(false);
     }
   }
+
+  const availableModels = providerName === "ollama" ? ollamaModels : [];
 
   return (
     <section className="provider-settings">
@@ -79,9 +106,13 @@ function ProviderSettings({
             <option value="openai">OpenAI</option>
             <option value="ollama">Ollama</option>
           </select>
+          {providerName === "ollama" && (
+            <button type="button" onClick={() => onOllamaUrlChange(LOCAL_OLLAMA_URL)}>
+              Local
+            </button>
+          )}
           <span className="field-value">
-            PDFs will be processed with{" "}
-            {providerName === "anthropic" ? "Anthropic" : providerName === "openai" ? "OpenAI" : "Ollama"}.
+            PDFs will be processed with {PROVIDER_LABELS[providerName]}.
           </span>
         </div>
       </div>
@@ -89,18 +120,32 @@ function ProviderSettings({
       <div className="field-row">
         <label className="field-label">Model Name</label>
         <div className="field-control">
-          <input
-            type="text"
-            value={model}
-            onChange={(e) => onModelChange(e.target.value)}
-            placeholder={
-              providerName === "anthropic"
-                ? "e.g. claude-sonnet-4-5"
-                : providerName === "openai"
-                  ? "e.g. gpt-4o"
-                  : "e.g. llama3.1"
-            }
-          />
+          {availableModels.length > 0 ? (
+            <>
+              <select value={model} onChange={(e) => onModelChange(e.target.value)}>
+                <option value="">Select a model…</option>
+                {availableModels.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+              <span className="field-value">{availableModels.length} model(s) available</span>
+            </>
+          ) : (
+            <input
+              type="text"
+              value={model}
+              onChange={(e) => onModelChange(e.target.value)}
+              placeholder={
+                providerName === "anthropic"
+                  ? "e.g. claude-sonnet-4-5"
+                  : providerName === "openai"
+                    ? "e.g. gpt-4o"
+                    : "e.g. llama3.1"
+              }
+            />
+          )}
         </div>
       </div>
 

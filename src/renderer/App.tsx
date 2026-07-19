@@ -64,8 +64,7 @@ function App() {
   const [envKeyStatus, setEnvKeyStatus] = useState<EnvKeyStatus | null>(null);
   const [configLoaded, setConfigLoaded] = useState(false);
 
-  const model =
-    providerName === "anthropic" ? anthropicModel : providerName === "openai" ? openaiModel : ollamaModel;
+  const model = providerName === "anthropic" ? anthropicModel : providerName === "openai" ? openaiModel : ollamaModel;
 
   function setModel(value: string) {
     if (providerName === "anthropic") setAnthropicModel(value);
