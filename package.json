@@ -1,7 +1,7 @@
 {
   "name": "paperdistill",
   "productName": "PaperDistill",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Batch-convert scientific PDF papers into structured, AI-ready Markdown using local or cloud LLMs.",
   "private": true,
   "main": "dist-electron/main/main.js",
@@ -60,7 +60,8 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "${productName}-setup-${version}.${ext}"
     }
   },
   "allowScripts": {
