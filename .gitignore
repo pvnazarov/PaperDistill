@@ -44,6 +44,9 @@ coverage/
 .DS_Store
 Thumbs.db
 
+# Claude Code: settings.json is shared project config, settings.local.json is per-machine
+.claude/settings.local.json
+
 # App runtime output (generated during actual use, not part of the repo)
 paperdistill_run_log.jsonl
 *.paperdistill.json
