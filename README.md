@@ -42,6 +42,15 @@ Runs the vitest suite: PDF discovery, prompt placeholder substitution, scanned-P
 3. Click **Scan PDFs** to discover and extract text from every PDF (this also flags likely-scanned/image-only PDFs, which are skipped rather than sent to the LLM).
 4. Click **Start** to generate one Markdown file per PDF. Use **Pause**/**Resume**/**Cancel** to control a running batch, and **Open Output Folder** to jump to the results.
 
+### Bundled prompts
+
+Two ready-made prompts ship with the app, selectable from the buttons next to **Prompt TXT File**:
+
+- **Use Papers Prompt** — `default_prompt.txt`, for extracting published research papers.
+- **Use Proposals Prompt** — `prompt_proposals.txt`, for research/grant proposals: it captures work packages, deliverables, planned datasets and cohorts, partners and infrastructure, and which methods were proposed for which data.
+
+Both are plain text — copy one and edit it to build your own schema, then load it with **Choose File…**.
+
 ### Prompt file placeholders
 
 Your prompt TXT file can use these placeholders, which are substituted before the PDF text is sent to the LLM:

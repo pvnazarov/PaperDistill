@@ -91,11 +91,13 @@ export interface OllamaConnectionTestResult extends ConnectionTestResult {
   models?: string[];
 }
 
+export type BundledPromptId = "papers" | "proposals";
+
 export interface PaperDistillAPI {
   selectPdfFolder(): Promise<string | null>;
   selectPromptFile(): Promise<string | null>;
   selectOutputFolder(): Promise<string | null>;
-  getDefaultPromptPath(): Promise<string>;
+  getBundledPromptPath(id: BundledPromptId): Promise<string>;
   scanPdfFolder(options: ScanPdfFolderOptions): Promise<PdfJob[]>;
   onScanStarted(callback: (jobs: PdfJob[]) => void): () => void;
   onScanProgress(callback: (job: PdfJob) => void): () => void;

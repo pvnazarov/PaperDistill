@@ -23,6 +23,7 @@ import {
 import { loadConfig, saveConfig } from "./configStore";
 import type {
   AppConfig,
+  BundledPromptId,
   ConnectionTestResult,
   EnvKeyStatus,
   OllamaConnectionTestResult,
@@ -30,6 +31,11 @@ import type {
   ScanPdfFolderOptions,
   StartBatchOptions,
 } from "../shared/types";
+
+const BUNDLED_PROMPT_FILES: Record<BundledPromptId, string> = {
+  papers: "default_prompt.txt",
+  proposals: "prompt_proposals.txt",
+};
 
 let activeBatchControl: BatchControl | null = null;
 
@@ -120,8 +126,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle("fs:selectPdfFolder", () => selectPdfFolder(mainWindow));
   ipcMain.handle("fs:selectPromptFile", () => selectPromptFile(mainWindow));
   ipcMain.handle("fs:selectOutputFolder", () => selectOutputFolder(mainWindow));
-  ipcMain.handle("fs:getDefaultPromptPath", (): string =>
-    path.join(app.getAppPath(), "default_prompt.txt"),
+  ipcMain.handle("fs:getBundledPromptPath", (_event, id: BundledPromptId): string =>
+    path.join(app.getAppPath(), BUNDLED_PROMPT_FILES[id] ?? BUNDLED_PROMPT_FILES.papers),
   );
   ipcMain.handle("pdf:scan", (_event, options: ScanPdfFolderOptions) =>
     scanPdfFolder(mainWindow, options),

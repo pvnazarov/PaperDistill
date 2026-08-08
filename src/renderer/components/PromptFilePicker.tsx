@@ -9,13 +9,15 @@
  * See LICENSE for details.
  */
 
+import type { BundledPromptId } from "../../shared/types";
+
 interface PromptFilePickerProps {
   value: string | null;
   onSelect: () => void;
-  onUseDefault: () => void;
+  onUseBundled: (id: BundledPromptId) => void;
 }
 
-function PromptFilePicker({ value, onSelect, onUseDefault }: PromptFilePickerProps) {
+function PromptFilePicker({ value, onSelect, onUseBundled }: PromptFilePickerProps) {
   return (
     <div className="field-row">
       <label className="field-label">Prompt TXT File</label>
@@ -23,8 +25,11 @@ function PromptFilePicker({ value, onSelect, onUseDefault }: PromptFilePickerPro
         <button type="button" onClick={onSelect}>
           Choose File…
         </button>
-        <button type="button" onClick={onUseDefault}>
-          Use Default Prompt
+        <button type="button" onClick={() => onUseBundled("papers")}>
+          Use Papers Prompt
+        </button>
+        <button type="button" onClick={() => onUseBundled("proposals")}>
+          Use Proposals Prompt
         </button>
         <span className="field-value">{value ?? "No prompt file selected"}</span>
       </div>

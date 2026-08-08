@@ -10,7 +10,13 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import type { AppConfig, EnvKeyStatus, LLMProviderName, PdfJob } from "../shared/types";
+import type {
+  AppConfig,
+  BundledPromptId,
+  EnvKeyStatus,
+  LLMProviderName,
+  PdfJob,
+} from "../shared/types";
 import appIcon from "./assets/app-icon.png";
 import lihLogo from "./assets/lih-logo.png";
 import FolderPicker from "./components/FolderPicker";
@@ -194,8 +200,8 @@ function App() {
     if (file) setPromptFile(file);
   }
 
-  async function handleUseDefaultPrompt() {
-    const file = await window.api.getDefaultPromptPath();
+  async function handleUseBundledPrompt(id: BundledPromptId) {
+    const file = await window.api.getBundledPromptPath(id);
     setPromptFile(file);
   }
 
@@ -295,7 +301,7 @@ function App() {
         <PromptFilePicker
           value={promptFile}
           onSelect={handleSelectPromptFile}
-          onUseDefault={handleUseDefaultPrompt}
+          onUseBundled={handleUseBundledPrompt}
         />
         <OutputFolderPicker value={outputFolder} onSelect={handleSelectOutputFolder} />
 

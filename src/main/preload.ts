@@ -16,7 +16,7 @@ const api: PaperDistillAPI = {
   selectPdfFolder: () => ipcRenderer.invoke("fs:selectPdfFolder"),
   selectPromptFile: () => ipcRenderer.invoke("fs:selectPromptFile"),
   selectOutputFolder: () => ipcRenderer.invoke("fs:selectOutputFolder"),
-  getDefaultPromptPath: () => ipcRenderer.invoke("fs:getDefaultPromptPath"),
+  getBundledPromptPath: (id) => ipcRenderer.invoke("fs:getBundledPromptPath", id),
   scanPdfFolder: (options) => ipcRenderer.invoke("pdf:scan", options),
   onScanStarted: (callback: (jobs: PdfJob[]) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, jobs: PdfJob[]) => callback(jobs);

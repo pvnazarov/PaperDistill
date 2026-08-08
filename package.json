@@ -52,7 +52,8 @@
       "dist-electron/**/*",
       "build/icon.png",
       "README.md",
-      "default_prompt.txt"
+      "default_prompt.txt",
+      "prompt_proposals.txt"
     ],
     "win": {
       "icon": "build/icon.ico"
