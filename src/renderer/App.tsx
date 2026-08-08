@@ -32,6 +32,15 @@ const DEFAULT_CHUNK_SIZE_CHARS = 70000;
 const DEFAULT_CHUNK_OVERLAP_CHARS = 5000;
 const CONFIG_SAVE_DEBOUNCE_MS = 500;
 
+// Credit line, split so the footer can turn the organisation into a link.
+// Kept in step with the same line in VennKit.
+const ORG_NAME = "Luxembourg Institute of Health";
+const ORG_URL = "https://www.lih.lu/en/";
+const CREDIT_PREFIX = `PaperDistill v${__APP_VERSION__} — © 2026 P.Nazarov, `;
+const CREDIT_SUFFIX = " · MIT License";
+const BUILT_WITH_TEXT = "Built with Claude Code";
+const BUILT_WITH_URL = "https://claude.com/claude-code";
+
 function basename(filePath: string): string {
   return filePath.split(/[\\/]/).pop() ?? filePath;
 }
@@ -431,6 +440,17 @@ function App() {
 
         <LogPanel lines={logs} />
       </main>
+      <footer className="app-footer">
+        {CREDIT_PREFIX}
+        <a href={ORG_URL} target="_blank" rel="noopener noreferrer">
+          {ORG_NAME}
+        </a>
+        {CREDIT_SUFFIX}
+        <span className="footer-sep"> · </span>
+        <a href={BUILT_WITH_URL} target="_blank" rel="noopener noreferrer">
+          {BUILT_WITH_TEXT}
+        </a>
+      </footer>
     </div>
   );
 }

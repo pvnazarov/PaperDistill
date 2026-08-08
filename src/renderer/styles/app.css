@@ -43,6 +43,12 @@ body {
   height: 60px;
   width: auto;
   flex-shrink: 0;
+  /* The official asset is dark lettering on transparency — as used on VennKit's
+     light theme. On this dark header it needs a light plate to stay legible,
+     rather than an edited copy of the logo itself. */
+  background-color: #ffffff;
+  border-radius: 6px;
+  padding: 6px 10px;
 }
 
 .app-header h1 {
@@ -314,4 +320,24 @@ body {
   color: #c7c9cc;
   white-space: pre-wrap;
   line-height: 1.6;
+}
+
+.app-footer {
+  margin-top: auto;
+  padding: 12px 32px 16px;
+  color: #7d7f85;
+  font-size: 12px;
+  text-align: center;
+}
+
+.app-footer a {
+  color: inherit;
+}
+
+.app-footer a:hover {
+  color: #3a7dc2;
+}
+
+.footer-sep {
+  opacity: 0.6;
 }

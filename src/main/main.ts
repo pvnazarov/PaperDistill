@@ -9,7 +9,7 @@
  * See LICENSE for details.
  */
 
-import { app, BrowserWindow, Menu } from "electron";
+import { app, BrowserWindow, Menu, shell } from "electron";
 import path from "node:path";
 import dotenv from "dotenv";
 import { registerIpcHandlers } from "./ipc";
@@ -34,6 +34,13 @@ function createMainWindow(): void {
       nodeIntegration: false,
       sandbox: true,
     },
+  });
+
+  // The footer's credit links are external: hand them to the system browser
+  // rather than letting Electron open a chromeless app window.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("https://")) void shell.openExternal(url);
+    return { action: "deny" };
   });
 
   Menu.setApplicationMenu(buildApplicationMenu(mainWindow));
