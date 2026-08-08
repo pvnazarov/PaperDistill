@@ -20,8 +20,8 @@
   it is the source of truth for anyone who does have access.
 
   Both artefacts live in /release/ on this server:
-    PaperDistill-setup-0.1.0.exe   built on Windows, copied here
-    PaperDistill-0.1.0.AppImage    built on this machine with `npx electron-builder --linux`
+    PaperDistill-setup-0.1.1.exe   built on Windows, copied here
+    PaperDistill-0.1.1.AppImage    built on this machine with `npx electron-builder --linux`
 
   Neither is code-signed, which is why the Windows section leads with SmartScreen: an unsigned
   NSIS installer shows "Windows protected your PC", and a user who does not expect that reads it
@@ -58,16 +58,18 @@ the PDF. The default instruction tells the model to work only from the provided 
 <h2>Download</h2>
 
 <table>
-  <tr><th>Platform</th><th>File</th><th>Size</th></tr>
+  <tr><th>Platform</th><th>File</th><th>Version</th><th>Size</th></tr>
   <tr>
     <td><strong>Windows</strong></td>
-    <td><a href="/release/PaperDistill-setup-0.1.0.exe">PaperDistill-setup-0.1.0.exe</a> — installer</td>
+    <td><a href="/release/PaperDistill-setup-0.1.1.exe">PaperDistill-setup-0.1.1.exe</a> — installer</td>
+    <td>0.1.1</td>
     <td>114 MB</td>
   </tr>
   <tr>
     <td><strong>Linux</strong></td>
-    <td><a href="/release/PaperDistill-0.1.0.AppImage">PaperDistill-0.1.0.AppImage</a> — portable, no install</td>
-    <td>148 MB</td>
+    <td><a href="/release/PaperDistill-0.1.1.AppImage">PaperDistill-0.1.1.AppImage</a> — portable, no install</td>
+    <td>0.1.1</td>
+    <td>150 MB</td>
   </tr>
 </table>
 
@@ -92,7 +94,7 @@ trust, check the file's SHA-256 first — see below.
 </div>
 
 <ol>
-  <li>Download <a href="/release/PaperDistill-setup-0.1.0.exe">PaperDistill-setup-0.1.0.exe</a>.</li>
+  <li>Download <a href="/release/PaperDistill-setup-0.1.1.exe">PaperDistill-setup-0.1.1.exe</a>.</li>
   <li>Run it. Get past SmartScreen as above.</li>
   <li>Accept the default installation directory and finish the installer. The default is inside your
       own user profile (<code>%LOCALAPPDATA%\Programs\PaperDistill</code>), which is why no admin
@@ -105,7 +107,7 @@ trust, check the file's SHA-256 first — see below.
 
 <div class="copyblock">
   <button type="button" data-copy>Copy</button>
-<pre>Get-FileHash .\PaperDistill-setup-0.1.0.exe -Algorithm SHA256</pre>
+<pre>Get-FileHash .\PaperDistill-setup-0.1.1.exe -Algorithm SHA256</pre>
 </div>
 
 <p>The result must match the line for that file in
@@ -118,9 +120,9 @@ and no <code>sudo</code> anywhere. Download it, make it executable, run it:</p>
 
 <div class="copyblock">
   <button type="button" data-copy>Copy</button>
-<pre>curl -O http://LIHW0056/release/PaperDistill-0.1.0.AppImage
-chmod +x PaperDistill-0.1.0.AppImage
-./PaperDistill-0.1.0.AppImage</pre>
+<pre>curl -O http://LIHW0056/release/PaperDistill-0.1.1.AppImage
+chmod +x PaperDistill-0.1.1.AppImage
+./PaperDistill-0.1.1.AppImage</pre>
 </div>
 
 <div class="note">
@@ -130,11 +132,11 @@ common case. Either install the compatibility library, or skip FUSE entirely:
 <div class="copyblock" style="margin-top:10px">
   <button type="button" data-copy>Copy</button>
 <pre>sudo apt install libfuse2          # option 1
-./PaperDistill-0.1.0.AppImage --appimage-extract-and-run   # option 2, no root needed</pre>
+./PaperDistill-0.1.1.AppImage --appimage-extract-and-run   # option 2, no root needed</pre>
 </div>
 </div>
 
-<p>To verify the download: <code>sha256sum PaperDistill-0.1.0.AppImage</code> and compare against
+<p>To verify the download: <code>sha256sum PaperDistill-0.1.1.AppImage</code> and compare against
 <a href="/release/SHA256SUMS.txt">SHA256SUMS.txt</a>.</p>
 
 <h2>Build from source</h2>
@@ -152,8 +154,8 @@ npm test           # 46 tests
 npm run package    # build an installer for the current platform into release/</pre>
 </div>
 
-<p class="sub">Verified on Linux with Node 26: dependencies install, all 46 tests pass, and
-<code>npx electron-builder --linux</code> produces the AppImage offered above. Note that
+<p class="sub">Verified on Linux with Node 24 and Node 26: dependencies install, all 46 tests pass,
+and <code>npx electron-builder --linux</code> produces the AppImage offered above. Note that
 <code>npm run package</code> builds for the platform you run it on — the Windows installer has to
 be built on Windows.</p>
 
