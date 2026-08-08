@@ -20,7 +20,7 @@
   it is the source of truth for anyone who does have access.
 
   Both artefacts live in /release/ on this server:
-    PaperDistill-setup-0.1.0.exe   built on Windows, copied here
+    PaperDistill-setup-0.1.1.exe   built on Windows, copied here
     PaperDistill-0.1.0.AppImage    built on this machine with `npx electron-builder --linux`
 
   Neither is code-signed, which is why the Windows section leads with SmartScreen: an unsigned
@@ -58,18 +58,24 @@ the PDF. The default instruction tells the model to work only from the provided 
 <h2>Download</h2>
 
 <table>
-  <tr><th>Platform</th><th>File</th><th>Size</th></tr>
+  <tr><th>Platform</th><th>File</th><th>Version</th><th>Size</th></tr>
   <tr>
     <td><strong>Windows</strong></td>
-    <td><a href="/release/PaperDistill-setup-0.1.0.exe">PaperDistill-setup-0.1.0.exe</a> — installer</td>
+    <td><a href="/release/PaperDistill-setup-0.1.1.exe">PaperDistill-setup-0.1.1.exe</a> — installer</td>
+    <td>0.1.1</td>
     <td>114 MB</td>
   </tr>
   <tr>
     <td><strong>Linux</strong></td>
     <td><a href="/release/PaperDistill-0.1.0.AppImage">PaperDistill-0.1.0.AppImage</a> — portable, no install</td>
+    <td>0.1.0</td>
     <td>148 MB</td>
   </tr>
 </table>
+
+<p class="sub"><strong>The two builds are not the same version.</strong> Windows is on 0.1.1; the
+Linux AppImage is still 0.1.0 and does not include whatever changed in 0.1.1. If that difference
+matters to you, build from source — or ask.</p>
 
 <p>Checksums: <a href="/release/SHA256SUMS.txt">SHA256SUMS.txt</a>. Source (private repo — you need
 access): <a href="https://github.com/pvnazarov/PaperDistill">github.com/pvnazarov/PaperDistill</a>.
@@ -92,7 +98,7 @@ trust, check the file's SHA-256 first — see below.
 </div>
 
 <ol>
-  <li>Download <a href="/release/PaperDistill-setup-0.1.0.exe">PaperDistill-setup-0.1.0.exe</a>.</li>
+  <li>Download <a href="/release/PaperDistill-setup-0.1.1.exe">PaperDistill-setup-0.1.1.exe</a>.</li>
   <li>Run it. Get past SmartScreen as above.</li>
   <li>Accept the default installation directory and finish the installer. The default is inside your
       own user profile (<code>%LOCALAPPDATA%\Programs\PaperDistill</code>), which is why no admin
@@ -105,7 +111,7 @@ trust, check the file's SHA-256 first — see below.
 
 <div class="copyblock">
   <button type="button" data-copy>Copy</button>
-<pre>Get-FileHash .\PaperDistill-setup-0.1.0.exe -Algorithm SHA256</pre>
+<pre>Get-FileHash .\PaperDistill-setup-0.1.1.exe -Algorithm SHA256</pre>
 </div>
 
 <p>The result must match the line for that file in
