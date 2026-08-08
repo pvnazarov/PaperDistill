@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PaperDistill — download and install — LIHW0056</title>
+<link rel="icon" href="/assets/LIH_logo_def_RGB_100px.png">
+<link rel="stylesheet" href="/assets/site.css">
+<!--
+  Download and install page for PaperDistill.
+
+  THIS IS A COPY OF A DEPLOYED PAGE, committed for the record. It is served at
+  http://LIHW0056/paperdistill/ on the LIH LAN, and its stylesheet, downloads, and cross-links are
+  ABSOLUTE PATHS into that web root (/assets/site.css, /release/*, /statusbar/). Opening this file
+  from a checkout therefore gives unstyled HTML with dead links — that is expected, not a bug.
+  The served copy is the one that matters; edit it there and re-copy, or this will drift.
+
+  The GitHub repo is PRIVATE, so the download links must be the primary route — a colleague
+  without repo access gets a 404 from GitHub and nothing else. The link is still given because
+  it is the source of truth for anyone who does have access.
+
+  Both artefacts live in /release/ on this server:
+    PaperDistill-setup-0.1.0.exe   built on Windows, copied here
+    PaperDistill-0.1.0.AppImage    built on this machine with `npx electron-builder --linux`
+
+  Neither is code-signed, which is why the Windows section leads with SmartScreen: an unsigned
+  NSIS installer shows "Windows protected your PC", and a user who does not expect that reads it
+  as "this is malware" and stops. Checksums are published so the warning can be answered with a
+  check rather than with trust.
+
+  Version numbers appear in the two filenames and in the download labels. Update both when a new
+  build is copied in, and refresh /release/SHA256SUMS.txt.
+-->
+</head>
+<body>
+
+<header>
+  <img class="logo" src="/assets/LIH_logo_def_RGB_100px.png"
+       alt="Luxembourg Institute of Health" width="275" height="100">
+  <div>
+    <h1>PaperDistill</h1>
+    <p class="sub">Batch-convert scientific PDFs into structured, AI-ready Markdown</p>
+  </div>
+  <a class="back" href="/">← All projects</a>
+</header>
+
+<main>
+
+<p>PaperDistill is a <strong>desktop application</strong>. You point it at a <strong>folder of
+PDFs</strong>, a <strong>prompt file</strong> describing the structure you want extracted, and an
+<strong>output folder</strong> — it produces one Markdown file per PDF, using Anthropic, OpenAI, or
+a local Ollama model.</p>
+
+<p>It never invents content: extraction is driven entirely by your prompt and the text pulled from
+the PDF. The default instruction tells the model to work only from the provided text and to write
+<code>Not found in PDF</code> rather than guess.</p>
+
+<h2>Download</h2>
+
+<table>
+  <tr><th>Platform</th><th>File</th><th>Size</th></tr>
+  <tr>
+    <td><strong>Windows</strong></td>
+    <td><a href="/release/PaperDistill-setup-0.1.0.exe">PaperDistill-setup-0.1.0.exe</a> — installer</td>
+    <td>114 MB</td>
+  </tr>
+  <tr>
+    <td><strong>Linux</strong></td>
+    <td><a href="/release/PaperDistill-0.1.0.AppImage">PaperDistill-0.1.0.AppImage</a> — portable, no install</td>
+    <td>148 MB</td>
+  </tr>
+</table>
+
+<p>Checksums: <a href="/release/SHA256SUMS.txt">SHA256SUMS.txt</a>. Source (private repo — you need
+access): <a href="https://github.com/pvnazarov/PaperDistill">github.com/pvnazarov/PaperDistill</a>.
+There is no macOS build; on a Mac, build from source.</p>
+
+<div class="note">
+<strong>No administrator rights needed, on either platform.</strong> The Windows installer runs as
+whoever launched it — its manifest requests <code>asInvoker</code>, not elevation — and installs
+into your own user profile, so there is no UAC prompt and nothing to ask IT for. The Linux
+AppImage is just a file you run. You do not need to be an admin on the machine to use PaperDistill.
+</div>
+
+<h2>Install on Windows</h2>
+
+<div class="note">
+<strong>Windows will warn you, and the warning is expected.</strong> The installer is not
+code-signed, so SmartScreen shows a blue <em>“Windows protected your PC”</em> panel. Click
+<strong>More info</strong>, then <strong>Run anyway</strong>. If you would rather verify than
+trust, check the file's SHA-256 first — see below.
+</div>
+
+<ol>
+  <li>Download <a href="/release/PaperDistill-setup-0.1.0.exe">PaperDistill-setup-0.1.0.exe</a>.</li>
+  <li>Run it. Get past SmartScreen as above.</li>
+  <li>Accept the default installation directory and finish the installer. The default is inside your
+      own user profile (<code>%LOCALAPPDATA%\Programs\PaperDistill</code>), which is why no admin
+      rights are required. You <em>may</em> change it, but choosing a system-wide location such as
+      <code>C:\Program Files</code> is the one way to make Windows demand an administrator.</li>
+  <li>Launch <strong>PaperDistill</strong> from the Start menu.</li>
+</ol>
+
+<p>To verify the download first, in PowerShell:</p>
+
+<div class="copyblock">
+  <button type="button" data-copy>Copy</button>
+<pre>Get-FileHash .\PaperDistill-setup-0.1.0.exe -Algorithm SHA256</pre>
+</div>
+
+<p>The result must match the line for that file in
+<a href="/release/SHA256SUMS.txt">SHA256SUMS.txt</a>.</p>
+
+<h2>Install on Linux</h2>
+
+<p>The AppImage is a single self-contained file — there is nothing to install, nothing to uninstall,
+and no <code>sudo</code> anywhere. Download it, make it executable, run it:</p>
+
+<div class="copyblock">
+  <button type="button" data-copy>Copy</button>
+<pre>curl -O http://LIHW0056/release/PaperDistill-0.1.0.AppImage
+chmod +x PaperDistill-0.1.0.AppImage
+./PaperDistill-0.1.0.AppImage</pre>
+</div>
+
+<div class="note">
+<strong>If it fails with a FUSE error</strong> — <code>dlopen(): error loading libfuse.so.2</code> —
+your distribution ships FUSE 3 and AppImages still want FUSE 2. Ubuntu 22.04 and later are the
+common case. Either install the compatibility library, or skip FUSE entirely:
+<div class="copyblock" style="margin-top:10px">
+  <button type="button" data-copy>Copy</button>
+<pre>sudo apt install libfuse2          # option 1
+./PaperDistill-0.1.0.AppImage --appimage-extract-and-run   # option 2, no root needed</pre>
+</div>
+</div>
+
+<p>To verify the download: <code>sha256sum PaperDistill-0.1.0.AppImage</code> and compare against
+<a href="/release/SHA256SUMS.txt">SHA256SUMS.txt</a>.</p>
+
+<h2>Build from source</h2>
+
+<p>Needs <strong>Node 20+</strong> and access to the private repository. This is also the route for
+macOS.</p>
+
+<div class="copyblock">
+  <button type="button" data-copy>Copy</button>
+<pre>git clone git@github.com:pvnazarov/PaperDistill.git
+cd PaperDistill
+npm install
+npm run dev        # run it
+npm test           # 46 tests
+npm run package    # build an installer for the current platform into release/</pre>
+</div>
+
+<p class="sub">Verified on Linux with Node 26: dependencies install, all 46 tests pass, and
+<code>npx electron-builder --linux</code> produces the AppImage offered above. Note that
+<code>npm run package</code> builds for the platform you run it on — the Windows installer has to
+be built on Windows.</p>
+
+<h2>Set up a model</h2>
+
+<p>PaperDistill has no LLM of its own — you bring one. Pick a provider in the app:</p>
+
+<table>
+  <tr><th>Provider</th><th>What you need</th></tr>
+  <tr><td><strong>Anthropic</strong></td><td>An API key. Paste it into the app — it is held in memory
+      for that session only and never written to disk. Model name, e.g. <code>claude-sonnet-4-5</code>.</td></tr>
+  <tr><td><strong>OpenAI</strong></td><td>An API key, pasted the same way. Model name, e.g. <code>gpt-4o</code>.</td></tr>
+  <tr><td><strong>Ollama</strong></td><td>Nothing — no key, no account. Run <code>ollama serve</code>
+      locally, pull a model, and use <strong>Test Connection</strong> to check the default
+      <code>http://localhost:11434</code>. Your PDFs never leave your machine this way.</td></tr>
+</table>
+
+<p>If you would rather not paste a key each session, set it as a user environment variable before
+launching — <code>ANTHROPIC_API_KEY</code> or <code>OPENAI_API_KEY</code>. The app reads the
+environment it was launched with and never overrides a variable that is already set. On Windows,
+<code>setx ANTHROPIC_API_KEY "your-key"</code> in a terminal, then open a new one.</p>
+
+<h2>Using it</h2>
+
+<ol>
+  <li>Select a <strong>PDF folder</strong>, a <strong>prompt .txt file</strong>, and an
+      <strong>output folder</strong>. The repo's <code>default_prompt.txt</code> is a working
+      starting point.</li>
+  <li>Choose a provider and model.</li>
+  <li><strong>Scan PDFs</strong> — extracts text from each one and flags likely scanned/image-only
+      PDFs, which get skipped rather than sent to the model.</li>
+  <li><strong>Start</strong>. Pause, Resume, and Cancel work mid-run.</li>
+</ol>
+
+<p>For each PDF you get <code>&lt;name&gt;.md</code> plus a
+<code>&lt;name&gt;.paperdistill.json</code> sidecar recording provider, model, page count and
+status, and one <code>paperdistill_run_log.jsonl</code> for the whole run. Existing
+<code>.md</code> files are never overwritten unless you ask.</p>
+
+<p>Your prompt can use <code>{{PDF_TEXT}}</code>, <code>{{PDF_FILENAME}}</code>,
+<code>{{PDF_PATH}}</code> and <code>{{PAGE_COUNT}}</code>. If you use none of them, the extracted
+text is appended after your prompt — so plain English works fine.</p>
+
+<h2>Known limits</h2>
+
+<ul>
+  <li><strong>No OCR.</strong> Scanned or image-only PDFs are detected and skipped, not processed.</li>
+  <li><strong>Text extraction</strong> uses <code>pdfjs-dist</code>, which can struggle with
+      multi-column layouts, embedded tables, and unusual fonts.</li>
+  <li><strong>One batch at a time</strong> — starting a second run while one is going is not
+      supported from the UI.</li>
+  <li><strong>Resume is filesystem-based</strong>: it checks whether <code>&lt;name&gt;.md</code>
+      already exists, and does not track partial progress inside a single PDF.</li>
+  <li><strong>Cloud-synced folders</strong> (OneDrive, Dropbox) can cause <code>EBUSY</code>
+      errors during builds — work from a local path.</li>
+</ul>
+
+</main>
+
+<footer>
+  For any issue contact <a href="mailto:petr.nazarov@lih.lu">P.&nbsp;Nazarov</a>
+</footer>
+
+<script>
+  // Copy buttons. navigator.clipboard needs a secure context, and plain http:// on a LAN hostname
+  // is not one in Chrome — so fall back to execCommand, which still works there.
+  for (const button of document.querySelectorAll('[data-copy]')) {
+    button.addEventListener('click', async () => {
+      const text = button.parentElement.querySelector('pre').innerText;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const scratch = document.createElement('textarea');
+          scratch.value = text;
+          scratch.style.position = 'fixed';
+          scratch.style.opacity = '0';
+          document.body.appendChild(scratch);
+          scratch.select();
+          document.execCommand('copy');
+          scratch.remove();
+        }
+        button.textContent = 'Copied';
+      } catch {
+        button.textContent = 'Press Ctrl+C';
+      }
+      setTimeout(() => { button.textContent = 'Copy'; }, 2000);
+    });
+  }
+</script>
+
+</body>
+</html>
