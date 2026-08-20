@@ -86,4 +86,16 @@ describe("buildPrompt", () => {
     expect(result.startsWith("Analyze paper.pdf (3 pages).")).toBe(true);
     expect(result).toContain("EXTRACTED PDF TEXT:\nbody text");
   });
+
+  it('renders {{PAGE_COUNT}} as "unknown" for formats without pages', () => {
+    const result = buildPrompt({
+      promptTemplate: "File: {{PDF_FILENAME}} Pages: {{PAGE_COUNT}} Text: {{PDF_TEXT}}",
+      pdfText: "sheet contents",
+      pdfFileName: "cohort.xlsx",
+      pdfPath: "/data/cohort.xlsx",
+      pageCount: null,
+    });
+
+    expect(result).toBe("File: cohort.xlsx Pages: unknown Text: sheet contents");
+  });
 });

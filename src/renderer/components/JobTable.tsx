@@ -26,7 +26,7 @@ const STATUS_LABELS: Record<PdfJob["status"], string> = {
 
 function JobTable({ jobs }: JobTableProps) {
   if (jobs.length === 0) {
-    return <p className="job-table-empty">No PDFs scanned yet.</p>;
+    return <p className="job-table-empty">No files scanned yet.</p>;
   }
 
   return (

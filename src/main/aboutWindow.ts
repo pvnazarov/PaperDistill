@@ -70,7 +70,7 @@ export async function showAboutWindow(parent: BrowserWindow): Promise<void> {
   <img src="data:image/png;base64,${iconBase64}" alt="PaperDistill" />
   <h1>PaperDistill</h1>
   <p class="summary">
-    Batch-converts scientific PDF papers into structured, AI-ready Markdown using
+    Batch-converts scientific documents into structured, AI-ready Markdown using
     local or cloud LLMs (Anthropic, OpenAI, or Ollama).
   </p>
   <p class="meta">Version ${APP_VERSION} &middot; Built ${BUILD_DATE}</p>

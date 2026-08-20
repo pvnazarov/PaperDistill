@@ -12,10 +12,12 @@
 import { app, BrowserWindow, dialog } from "electron";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { INPUT_FILE_KIND_EXTENSIONS } from "../shared/types";
+import type { InputFileKind } from "../shared/types";
 
-export async function selectPdfFolder(window: BrowserWindow): Promise<string | null> {
+export async function selectInputFolder(window: BrowserWindow): Promise<string | null> {
   const result = await dialog.showOpenDialog(window, {
-    title: "Select PDF Folder",
+    title: "Select Input Folder",
     defaultPath: app.getPath("documents"),
     properties: ["openDirectory"],
   });
@@ -38,10 +40,15 @@ export async function selectPromptFile(window: BrowserWindow): Promise<string | 
   return result.filePaths[0];
 }
 
-export async function discoverPdfFiles(
+/** Finds every file in the folder whose extension matches one of the selected types. */
+export async function discoverInputFiles(
   folderPath: string,
   recursive: boolean,
+  fileTypes: InputFileKind[],
 ): Promise<string[]> {
+  const wantedExtensions = new Set(fileTypes.map((kind) => INPUT_FILE_KIND_EXTENSIONS[kind]));
+  if (wantedExtensions.size === 0) return [];
+
   const results: string[] = [];
 
   async function walk(dir: string): Promise<void> {
@@ -52,8 +59,11 @@ export async function discoverPdfFiles(
         if (recursive) {
           await walk(fullPath);
         }
-      } else if (entry.isFile() && entry.name.toLowerCase().endsWith(".pdf")) {
-        results.push(fullPath);
+      } else if (entry.isFile()) {
+        const extension = path.extname(entry.name).slice(1).toLowerCase();
+        if (wantedExtensions.has(extension)) {
+          results.push(fullPath);
+        }
       }
     }
   }

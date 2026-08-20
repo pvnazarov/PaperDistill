@@ -20,7 +20,9 @@ interface PromptFilePickerProps {
 function PromptFilePicker({ value, onSelect, onUseBundled }: PromptFilePickerProps) {
   return (
     <div className="field-row">
-      <label className="field-label">Prompt TXT File</label>
+      <label className={value ? "field-label" : "field-label field-label-missing"}>
+        Prompt TXT File
+      </label>
       <div className="field-control">
         <button type="button" onClick={onSelect}>
           Choose File…
@@ -31,7 +33,9 @@ function PromptFilePicker({ value, onSelect, onUseBundled }: PromptFilePickerPro
         <button type="button" onClick={() => onUseBundled("proposals")}>
           Use Proposals Prompt
         </button>
-        <span className="field-value">{value ?? "No prompt file selected"}</span>
+        <span className={value ? "field-value" : "field-value field-value-missing"}>
+          {value ?? "No prompt file selected"}
+        </span>
       </div>
     </div>
   );

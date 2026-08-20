@@ -14,18 +14,18 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-vi.mock("./pdfExtract", () => ({
-  extractPdfText: vi.fn(),
+vi.mock("./documentExtract", () => ({
+  extractDocumentText: vi.fn(),
 }));
 
-import { extractPdfText } from "./pdfExtract";
-import type { PdfExtractionResult } from "./pdfExtract";
+import { extractDocumentText } from "./documentExtract";
+import type { DocumentExtractionResult } from "./documentExtract";
 import { outputPathFor, runBatch } from "./batchRunner";
 import type { StartBatchOptions } from "../shared/types";
 
-const mockExtract = vi.mocked(extractPdfText);
+const mockExtract = vi.mocked(extractDocumentText);
 
-function extraction(overrides: Partial<PdfExtractionResult> = {}): PdfExtractionResult {
+function extraction(overrides: Partial<DocumentExtractionResult> = {}): DocumentExtractionResult {
   return {
     fileName: "paper.pdf",
     filePath: "paper.pdf",
@@ -34,7 +34,7 @@ function extraction(overrides: Partial<PdfExtractionResult> = {}): PdfExtraction
     text: "[PAGE 1]\nSome real extracted text.",
     extractedAt: new Date().toISOString(),
     extractionBackend: "pdfjs-dist",
-    likelyScanned: false,
+    noTextWarning: null,
     ...overrides,
   };
 }
@@ -125,7 +125,13 @@ describe("runBatch", () => {
   it("marks a likely-scanned PDF as a warning and skips the LLM call", async () => {
     const pdfPath = path.join(tempDir, "scanned.pdf");
     mockExtract.mockResolvedValue(
-      extraction({ fileName: "scanned.pdf", filePath: pdfPath, characterCount: 0, text: "[PAGE 1]\n", likelyScanned: true }),
+      extraction({
+        fileName: "scanned.pdf",
+        filePath: pdfPath,
+        characterCount: 0,
+        text: "[PAGE 1]\n",
+        noTextWarning: "Likely a scanned PDF: little or no extractable text found. Skipped.",
+      }),
     );
     const provider = fakeProvider();
 
@@ -138,6 +144,37 @@ describe("runBatch", () => {
 
     expect(job.status).toBe("warning");
     expect(job.outputPath).toBeNull();
+    expect(job.errorMessage).toBe(
+      "Likely a scanned PDF: little or no extractable text found. Skipped.",
+    );
+    expect(provider.generateMarkdown).not.toHaveBeenCalled();
+  });
+
+  it("warns and skips the LLM call for a non-PDF file with no extractable text", async () => {
+    const docxPath = path.join(tempDir, "empty.docx");
+    mockExtract.mockResolvedValue(
+      extraction({
+        fileName: "empty.docx",
+        filePath: docxPath,
+        pageCount: null,
+        characterCount: 0,
+        text: "",
+        extractionBackend: "mammoth",
+        noTextWarning: "No extractable text found in this file. Skipped.",
+      }),
+    );
+    const provider = fakeProvider();
+
+    const [job] = await runBatch(baseOptions({ filePaths: [docxPath] }), {
+      createProvider: () => provider,
+      providerName: "mock",
+      model: "m",
+      onProgress: () => {},
+    });
+
+    expect(job.status).toBe("warning");
+    expect(job.pageCount).toBeNull();
+    expect(job.errorMessage).toBe("No extractable text found in this file. Skipped.");
     expect(provider.generateMarkdown).not.toHaveBeenCalled();
   });
 

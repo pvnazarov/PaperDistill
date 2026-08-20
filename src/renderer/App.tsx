@@ -10,10 +10,12 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { DEFAULT_INPUT_FILE_KINDS } from "../shared/types";
 import type {
   AppConfig,
   BundledPromptId,
   EnvKeyStatus,
+  InputFileKind,
   LLMProviderName,
   PdfJob,
 } from "../shared/types";
@@ -54,9 +56,10 @@ function formatElapsed(startedAtMs: number): string {
 }
 
 function App() {
-  const [pdfFolder, setPdfFolder] = useState<string | null>(null);
+  const [inputFolder, setInputFolder] = useState<string | null>(null);
   const [promptFile, setPromptFile] = useState<string | null>(null);
   const [outputFolder, setOutputFolder] = useState<string | null>(null);
+  const [fileTypes, setFileTypes] = useState<InputFileKind[]>(DEFAULT_INPUT_FILE_KINDS);
   const [recursive, setRecursive] = useState(false);
   const [overwrite, setOverwrite] = useState(false);
   const [resumeMode, setResumeMode] = useState(false);
@@ -107,6 +110,7 @@ function App() {
       if (config.openaiModel) setOpenaiModel(config.openaiModel);
       if (config.ollamaModel) setOllamaModel(config.ollamaModel);
       if (config.ollamaUrl) setOllamaUrl(config.ollamaUrl);
+      if (config.fileTypes !== undefined) setFileTypes(config.fileTypes);
       if (config.recursive !== undefined) setRecursive(config.recursive);
       if (config.overwrite !== undefined) setOverwrite(config.overwrite);
       if (config.resumeMode !== undefined) setResumeMode(config.resumeMode);
@@ -127,6 +131,7 @@ function App() {
       openaiModel,
       ollamaModel,
       ollamaUrl,
+      fileTypes,
       recursive,
       overwrite,
       resumeMode,
@@ -147,6 +152,7 @@ function App() {
     openaiModel,
     ollamaModel,
     ollamaUrl,
+    fileTypes,
     recursive,
     overwrite,
     resumeMode,
@@ -199,9 +205,9 @@ function App() {
     };
   }, []);
 
-  async function handleSelectPdfFolder() {
-    const folder = await window.api.selectPdfFolder();
-    if (folder) setPdfFolder(folder);
+  async function handleSelectInputFolder() {
+    const folder = await window.api.selectInputFolder();
+    if (folder) setInputFolder(folder);
   }
 
   async function handleSelectPromptFile() {
@@ -219,15 +225,19 @@ function App() {
     if (folder) setOutputFolder(folder);
   }
 
-  async function handleScanPdfs() {
-    if (!pdfFolder) return;
+  async function handleScanFiles() {
+    if (!inputFolder || fileTypes.length === 0) return;
     setScanning(true);
     setScanError(null);
     const startedAt = Date.now();
     try {
-      const result = await window.api.scanPdfFolder({ folderPath: pdfFolder, recursive });
+      const result = await window.api.scanInputFolder({
+        folderPath: inputFolder,
+        recursive,
+        fileTypes,
+      });
       setJobs(result);
-      appendLog(`Scanned ${result.length} PDFs. (${formatElapsed(startedAt)})`);
+      appendLog(`Scanned ${result.length} files. (${formatElapsed(startedAt)})`);
     } catch (error) {
       setScanError(error instanceof Error ? error.message : String(error));
     } finally {
@@ -241,7 +251,7 @@ function App() {
     setPaused(false);
     setRunError(null);
     const startedAt = Date.now();
-    appendLog(`Starting batch: ${jobs.length} PDFs.`);
+    appendLog(`Starting batch: ${jobs.length} files.`);
     try {
       const result = await window.api.startBatch({
         filePaths: jobs.map((job) => job.filePath),
@@ -278,14 +288,14 @@ function App() {
       setPaused(false);
     } else {
       await window.api.pauseBatch();
-      appendLog("Paused after the current PDF finishes.");
+      appendLog("Paused after the current file finishes.");
       setPaused(true);
     }
   }
 
   async function handleCancel() {
     await window.api.cancelBatch();
-    appendLog("Cancel requested; stopping after the current PDF.");
+    appendLog("Cancel requested; stopping after the current file.");
   }
 
   async function handleOpenOutputFolder() {
@@ -300,13 +310,18 @@ function App() {
         <div className="app-header-text">
           <h1>PaperDistill</h1>
           <p className="app-subtitle">
-            Batch-convert scientific PDF papers into structured, AI-ready Markdown.
+            Batch-convert scientific documents into structured, AI-ready Markdown.
           </p>
         </div>
         <img src={lihLogo} alt="Luxembourg Institute of Health" className="app-header-lih-logo" />
       </header>
       <main className="app-main">
-        <FolderPicker value={pdfFolder} onSelect={handleSelectPdfFolder} />
+        <FolderPicker
+          value={inputFolder}
+          fileTypes={fileTypes}
+          onSelect={handleSelectInputFolder}
+          onFileTypesChange={setFileTypes}
+        />
         <PromptFilePicker
           value={promptFile}
           onSelect={handleSelectPromptFile}
@@ -335,7 +350,7 @@ function App() {
               checked={recursive}
               onChange={(e) => setRecursive(e.target.checked)}
             />
-            Recursive PDF search
+            Recursive search
           </label>
           <label className="checkbox-label">
             <input
@@ -406,8 +421,12 @@ function App() {
 
         <div className="field-row">
           <div className="field-control">
-            <button type="button" onClick={handleScanPdfs} disabled={!pdfFolder || scanning || running}>
-              {scanning ? "Scanning…" : "Scan PDFs"}
+            <button
+              type="button"
+              onClick={handleScanFiles}
+              disabled={!inputFolder || fileTypes.length === 0 || scanning || running}
+            >
+              {scanning ? "Scanning…" : "Scan Files"}
             </button>
             <button
               type="button"

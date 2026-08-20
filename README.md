@@ -1,10 +1,10 @@
 # PaperDistill
 
-PaperDistill is a local desktop application for batch-converting scientific PDF papers into structured, AI-ready Markdown files.
+PaperDistill is a local desktop application for batch-converting scientific documents into structured, AI-ready Markdown files.
 
-It takes a folder of PDFs, a user-supplied prompt file describing the extraction schema you want, and an LLM backend (Anthropic, OpenAI, or a local Ollama model), and produces one Markdown file per PDF — suitable for building a long-term knowledge base of bioinformatics, computational biology, statistics, AI, omics, cancer research, or translational biomedicine papers.
+It takes an input folder of documents (PDF, DOCX, XLSX, TXT and MD), a user-supplied prompt file describing the extraction schema you want, and an LLM backend (Anthropic, OpenAI, or a local Ollama model), and produces one Markdown file per document — suitable for building a long-term knowledge base of bioinformatics, computational biology, statistics, AI, omics, cancer research, or translational biomedicine papers.
 
-PaperDistill itself never invents or alters scientific content: extraction is driven entirely by your prompt, the text extracted from the PDF, and the LLM you choose. The default system instruction tells the model to work only from the provided text, write `Not found in PDF` for missing information, and avoid hallucinating metadata, methods, or results.
+PaperDistill itself never invents or alters scientific content: extraction is driven entirely by your prompt, the text extracted from the document, and the LLM you choose. The default system instruction tells the model to work only from the provided text, write `Not found in PDF` for missing information, and avoid hallucinating metadata, methods, or results.
 
 ## Installation
 
@@ -33,14 +33,27 @@ npm run package    # additionally bundles the app with electron-builder into rel
 npm test
 ```
 
-Runs the vitest suite: PDF discovery, prompt placeholder substitution, scanned-PDF detection, chunking, provider abstraction (including a mocked OpenAI SDK and a deterministic mock provider), and the batch runner's output-filename generation, skip/resume/overwrite logic, atomic writes, and per-PDF failure isolation.
+Runs the vitest suite: input-file discovery and extension filtering, text extraction for DOCX/XLSX/TXT/MD (against DOCX and XLSX archives built on the fly, so the real readers are exercised), prompt placeholder substitution, scanned-PDF detection, chunking, provider abstraction (including a mocked OpenAI SDK and a deterministic mock provider), and the batch runner's output-filename generation, skip/resume/overwrite logic, atomic writes, and per-file failure isolation.
 
 ## Usage
 
-1. Select a **PDF folder**, a **prompt TXT file**, and an **output folder**.
-2. Choose an **LLM provider** and enter a **model name**.
-3. Click **Scan PDFs** to discover and extract text from every PDF (this also flags likely-scanned/image-only PDFs, which are skipped rather than sent to the LLM).
-4. Click **Start** to generate one Markdown file per PDF. Use **Pause**/**Resume**/**Cancel** to control a running batch, and **Open Output Folder** to jump to the results.
+1. Select an **input folder**, a **prompt TXT file**, and an **output folder**.
+2. Tick the **file types** to read from the input folder — **PDF**, **DOCX**, **XLSX**, **TXT**, **MD**. Only PDF is ticked by default; the selection is remembered between runs.
+3. Choose an **LLM provider** and enter a **model name**.
+4. Click **Scan Files** to discover and extract text from every matching file (this also flags likely-scanned/image-only PDFs and any file with no extractable text, which are skipped rather than sent to the LLM).
+5. Click **Start** to generate one Markdown file per document. Use **Pause**/**Resume**/**Cancel** to control a running batch, and **Open Output Folder** to jump to the results.
+
+### Supported input formats
+
+| Type | Reader | Notes |
+| --- | --- | --- |
+| PDF | `pdfjs-dist` | Text per page, marked up as `[PAGE n]`. Reports a page count. |
+| DOCX | `mammoth` | Paragraph text only — images, comments and tracked changes are not extracted. |
+| XLSX | `jszip` + a built-in reader | Each sheet becomes a `[SHEET <name>]` section of tab-separated cell values. |
+| TXT | plain UTF-8 | Read as-is; a leading byte-order mark is stripped. |
+| MD | plain UTF-8 | Read as-is, Markdown syntax preserved. |
+
+Only PDF has pages, so DOCX, XLSX, TXT and MD show `—` in the Jobs table's **Pages** column and render `{{PAGE_COUNT}}` as `unknown`.
 
 ### Bundled prompts
 
@@ -53,7 +66,7 @@ Both are plain text — copy one and edit it to build your own schema, then load
 
 ### Prompt file placeholders
 
-Your prompt TXT file can use these placeholders, which are substituted before the PDF text is sent to the LLM:
+Your prompt TXT file can use these placeholders, which are substituted before the extracted text is sent to the LLM. They keep their `PDF_` names for compatibility with existing prompt files, but they carry the text of whichever document is being processed:
 
 ```text
 {{PDF_TEXT}}
@@ -62,7 +75,7 @@ Your prompt TXT file can use these placeholders, which are substituted before th
 {{PAGE_COUNT}}
 ```
 
-If `{{PDF_TEXT}}` is present, it's replaced with the extracted text. If it's absent, the extracted text is appended after your prompt under a delimited `EXTRACTED PDF TEXT:` section instead — so a plain-English prompt with no placeholders still works.
+If `{{PDF_TEXT}}` is present, it's replaced with the extracted text. If it's absent, the extracted text is appended after your prompt under a delimited `EXTRACTED PDF TEXT:` section instead — so a plain-English prompt with no placeholders still works. `{{PAGE_COUNT}}` becomes `unknown` for formats without pages (DOCX, XLSX, TXT, MD).
 
 ### Using Anthropic
 
@@ -71,7 +84,7 @@ ANTHROPIC_API_KEY=your_key_here
 npm run dev
 ```
 
-Select provider **Anthropic**, enter or confirm the model name (e.g. `claude-sonnet-4-5`), select your PDF folder, prompt TXT, and output folder, then click Start. If `ANTHROPIC_API_KEY` isn't set in `.env`, you can paste a key into the app for the current session instead.
+Select provider **Anthropic**, enter or confirm the model name (e.g. `claude-sonnet-4-5`), select your input folder, prompt TXT, and output folder, then click Start. If `ANTHROPIC_API_KEY` isn't set in `.env`, you can paste a key into the app for the current session instead.
 
 ### Using OpenAI
 
@@ -80,7 +93,7 @@ OPENAI_API_KEY=your_key_here
 npm run dev
 ```
 
-Select provider **OpenAI**, enter or confirm the model name (e.g. `gpt-4o`), select your PDF folder, prompt TXT, and output folder, then click Start. As with Anthropic, a session-only API key can be pasted into the app if `OPENAI_API_KEY` isn't in `.env`.
+Select provider **OpenAI**, enter or confirm the model name (e.g. `gpt-4o`), select your input folder, prompt TXT, and output folder, then click Start. As with Anthropic, a session-only API key can be pasted into the app if `OPENAI_API_KEY` isn't in `.env`.
 
 ### Using Ollama
 
@@ -90,7 +103,7 @@ ollama pull <MODEL_NAME>
 npm run dev
 ```
 
-Select provider **Ollama**, enter the model name and confirm the Ollama URL (default `http://localhost:11434`), use **Test Connection** to verify it's reachable, then select your PDF folder, prompt TXT, and output folder, and click Start. No API key is required.
+Select provider **Ollama**, enter the model name and confirm the Ollama URL (default `http://localhost:11434`), use **Test Connection** to verify it's reachable, then select your input folder, prompt TXT, and output folder, and click Start. No API key is required.
 
 ## Input / Output Structure
 
@@ -113,12 +126,14 @@ If a PDF's text is short enough to fit under **Max input chars** (default 180,00
 
 ### Scanned / image-only PDFs
 
-A PDF is flagged as likely scanned if it has fewer than 500 extracted characters total, or fewer than 100 characters per page on average. These are marked with a `warning` status and skipped — OCR is not implemented in this version.
+A PDF is flagged as likely scanned if it has fewer than 500 extracted characters total, or fewer than 100 characters per page on average. These are marked with a `warning` status and skipped — OCR is not implemented in this version. Any other input file that yields no text at all is likewise marked `warning` and skipped.
 
 ## Limitations
 
 - **PDF text extraction** uses `pdfjs-dist`, which is generally reliable but can struggle with complex scientific PDF layouts (multi-column text, embedded figures/tables, unusual fonts) more than a native tool like PyMuPDF would. A natural future upgrade is an optional Python extraction worker alongside this Electron UI.
 - **No OCR.** Scanned/image-only PDFs are detected and skipped, not processed.
+- **DOCX extraction is text-only.** `mammoth` recovers paragraph text; images, charts, comments, footnotes and tracked changes are not included.
+- **XLSX extraction reads cell values, not spreadsheets.** The built-in reader recovers the cached value of each cell — formulas are not evaluated, and styling, merged ranges, charts and images are ignored. Cells whose number format is a date or time are converted to `YYYY-MM-DD` (or `HH:MM:SS`); other numbers are passed through as written. Legacy `.xls` files are not supported, only the Office Open XML `.xlsx` format.
 - **Session-only API keys.** Keys pasted into the app are held in memory for the current session only and are never written to disk; only non-sensitive settings (provider, model, URLs, toggles, chunking sizes) are persisted between runs.
 - **Single batch at a time.** There's one job queue; starting a new batch while one is running isn't supported from the UI.
 - **No cross-run resume tracking beyond the filesystem.** "Resume" works by checking whether `<stem>.md` already exists in the output folder — it doesn't track partial chunk progress within a single PDF.
@@ -135,8 +150,10 @@ PaperDistill/
       main.ts              # Electron entry point, window + dotenv loading
       preload.ts            # contextBridge-exposed IPC surface
       ipc.ts                 # IPC handler registration
-      fileSystem.ts          # Native dialogs, PDF discovery
+      fileSystem.ts          # Native dialogs, input-file discovery and extension filtering
       pdfExtract.ts           # pdfjs-dist text extraction, scanned-PDF detection
+      documentExtract.ts       # Dispatches on file extension; DOCX and plain-text readers
+      xlsxExtract.ts           # Minimal XLSX reader (sheets -> tab-separated rows)
       promptBuilder.ts        # Placeholder substitution
       chunker.ts               # Overlapping-chunk splitting for long PDFs
       batchRunner.ts           # Orchestrates scan -> prompt -> LLM -> write -> log

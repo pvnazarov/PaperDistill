@@ -17,12 +17,16 @@ interface OutputFolderPickerProps {
 function OutputFolderPicker({ value, onSelect }: OutputFolderPickerProps) {
   return (
     <div className="field-row">
-      <label className="field-label">Output Folder</label>
+      <label className={value ? "field-label" : "field-label field-label-missing"}>
+        Output Folder
+      </label>
       <div className="field-control">
         <button type="button" onClick={onSelect}>
           Choose Folder…
         </button>
-        <span className="field-value">{value ?? "No output folder selected"}</span>
+        <span className={value ? "field-value" : "field-value field-value-missing"}>
+          {value ?? "No output folder selected"}
+        </span>
       </div>
     </div>
   );

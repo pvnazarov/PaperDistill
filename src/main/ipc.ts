@@ -11,8 +11,8 @@
 
 import { app, BrowserWindow, ipcMain, shell } from "electron";
 import path from "node:path";
-import { discoverPdfFiles, selectOutputFolder, selectPdfFolder, selectPromptFile } from "./fileSystem";
-import { extractPdfText } from "./pdfExtract";
+import { discoverInputFiles, selectInputFolder, selectOutputFolder, selectPromptFile } from "./fileSystem";
+import { extractDocumentText } from "./documentExtract";
 import { BatchControl, runBatch } from "./batchRunner";
 import {
   createProvider,
@@ -28,7 +28,7 @@ import type {
   EnvKeyStatus,
   OllamaConnectionTestResult,
   PdfJob,
-  ScanPdfFolderOptions,
+  ScanInputFolderOptions,
   StartBatchOptions,
 } from "../shared/types";
 
@@ -49,38 +49,41 @@ function makePendingJob(filePath: string): PdfJob {
     processingMode: null,
     outputPath: null,
     errorMessage: null,
-    likelyScanned: false,
   };
 }
 
-async function scanPdfFolder(mainWindow: BrowserWindow, options: ScanPdfFolderOptions): Promise<PdfJob[]> {
-  const filePaths = await discoverPdfFiles(options.folderPath, options.recursive);
+async function scanInputFolder(
+  mainWindow: BrowserWindow,
+  options: ScanInputFolderOptions,
+): Promise<PdfJob[]> {
+  const filePaths = await discoverInputFiles(
+    options.folderPath,
+    options.recursive,
+    options.fileTypes,
+  );
   const jobs: PdfJob[] = filePaths.map(makePendingJob);
 
-  mainWindow.webContents.send("pdf:scanStarted", jobs);
+  mainWindow.webContents.send("files:scanStarted", jobs);
 
   for (let i = 0; i < filePaths.length; i++) {
     const filePath = filePaths[i];
 
-    mainWindow.webContents.send("pdf:scanProgress", {
+    mainWindow.webContents.send("files:scanProgress", {
       ...jobs[i],
       status: "processing",
     } satisfies PdfJob);
 
     try {
-      const extraction = await extractPdfText(filePath);
+      const extraction = await extractDocumentText(filePath);
       jobs[i] = {
         fileName: extraction.fileName,
         filePath: extraction.filePath,
         pageCount: extraction.pageCount,
         characterCount: extraction.characterCount,
-        status: extraction.likelyScanned ? "warning" : "pending",
+        status: extraction.noTextWarning ? "warning" : "pending",
         processingMode: null,
         outputPath: null,
-        errorMessage: extraction.likelyScanned
-          ? "Likely a scanned PDF: little or no extractable text found."
-          : null,
-        likelyScanned: extraction.likelyScanned,
+        errorMessage: extraction.noTextWarning,
       };
     } catch (error) {
       jobs[i] = {
@@ -90,7 +93,7 @@ async function scanPdfFolder(mainWindow: BrowserWindow, options: ScanPdfFolderOp
       };
     }
 
-    mainWindow.webContents.send("pdf:scanProgress", jobs[i]);
+    mainWindow.webContents.send("files:scanProgress", jobs[i]);
   }
 
   return jobs;
@@ -123,14 +126,14 @@ function getEnvKeyStatus(): EnvKeyStatus {
 }
 
 export function registerIpcHandlers(mainWindow: BrowserWindow): void {
-  ipcMain.handle("fs:selectPdfFolder", () => selectPdfFolder(mainWindow));
+  ipcMain.handle("fs:selectInputFolder", () => selectInputFolder(mainWindow));
   ipcMain.handle("fs:selectPromptFile", () => selectPromptFile(mainWindow));
   ipcMain.handle("fs:selectOutputFolder", () => selectOutputFolder(mainWindow));
   ipcMain.handle("fs:getBundledPromptPath", (_event, id: BundledPromptId): string =>
     path.join(app.getAppPath(), BUNDLED_PROMPT_FILES[id] ?? BUNDLED_PROMPT_FILES.papers),
   );
-  ipcMain.handle("pdf:scan", (_event, options: ScanPdfFolderOptions) =>
-    scanPdfFolder(mainWindow, options),
+  ipcMain.handle("files:scan", (_event, options: ScanInputFolderOptions) =>
+    scanInputFolder(mainWindow, options),
   );
   ipcMain.handle("batch:start", (_event, options: StartBatchOptions) =>
     startBatch(mainWindow, options),

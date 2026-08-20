@@ -21,6 +21,30 @@ export type ProcessingMode = "single_call" | "chunked";
 
 export type LLMProviderName = "anthropic" | "openai" | "ollama";
 
+export type InputFileKind = "pdf" | "docx" | "xlsx" | "txt" | "md";
+
+/** Checkbox order in the Input Folder row. */
+export const INPUT_FILE_KINDS: InputFileKind[] = ["pdf", "docx", "xlsx", "txt", "md"];
+
+export const INPUT_FILE_KIND_LABELS: Record<InputFileKind, string> = {
+  pdf: "PDF",
+  docx: "DOCX",
+  xlsx: "XLSX",
+  txt: "TXT",
+  md: "MD",
+};
+
+/** Lower-case file extension, without the dot, matched for each kind. */
+export const INPUT_FILE_KIND_EXTENSIONS: Record<InputFileKind, string> = {
+  pdf: "pdf",
+  docx: "docx",
+  xlsx: "xlsx",
+  txt: "txt",
+  md: "md",
+};
+
+export const DEFAULT_INPUT_FILE_KINDS: InputFileKind[] = ["pdf"];
+
 export interface PdfJob {
   fileName: string;
   filePath: string;
@@ -30,12 +54,12 @@ export interface PdfJob {
   processingMode: ProcessingMode | null;
   outputPath: string | null;
   errorMessage: string | null;
-  likelyScanned: boolean;
 }
 
-export interface ScanPdfFolderOptions {
+export interface ScanInputFolderOptions {
   folderPath: string;
   recursive: boolean;
+  fileTypes: InputFileKind[];
 }
 
 export interface ProviderConfig {
@@ -68,6 +92,7 @@ export interface AppConfig {
   ollamaModel?: string;
   ollamaUrl?: string;
   recursive?: boolean;
+  fileTypes?: InputFileKind[];
   overwrite?: boolean;
   resumeMode?: boolean;
   writeFailureFiles?: boolean;
@@ -94,11 +119,11 @@ export interface OllamaConnectionTestResult extends ConnectionTestResult {
 export type BundledPromptId = "papers" | "proposals";
 
 export interface PaperDistillAPI {
-  selectPdfFolder(): Promise<string | null>;
+  selectInputFolder(): Promise<string | null>;
   selectPromptFile(): Promise<string | null>;
   selectOutputFolder(): Promise<string | null>;
   getBundledPromptPath(id: BundledPromptId): Promise<string>;
-  scanPdfFolder(options: ScanPdfFolderOptions): Promise<PdfJob[]>;
+  scanInputFolder(options: ScanInputFolderOptions): Promise<PdfJob[]>;
   onScanStarted(callback: (jobs: PdfJob[]) => void): () => void;
   onScanProgress(callback: (job: PdfJob) => void): () => void;
   startBatch(options: StartBatchOptions): Promise<PdfJob[]>;

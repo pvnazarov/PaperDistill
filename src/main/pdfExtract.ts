@@ -11,17 +11,10 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+// Type-only import, so this does not create a runtime cycle with the dispatcher.
+import type { DocumentExtractionResult } from "./documentExtract";
 
-export interface PdfExtractionResult {
-  fileName: string;
-  filePath: string;
-  pageCount: number;
-  characterCount: number;
-  text: string;
-  extractedAt: string;
-  extractionBackend: string;
-  likelyScanned: boolean;
-}
+const SCANNED_WARNING = "Likely a scanned PDF: little or no extractable text found. Skipped.";
 
 const SCANNED_TOTAL_CHAR_THRESHOLD = 500;
 const SCANNED_AVG_CHARS_PER_PAGE_THRESHOLD = 100;
@@ -46,7 +39,7 @@ export function isLikelyScanned(characterCount: number, pageCount: number): bool
   );
 }
 
-export async function extractPdfText(filePath: string): Promise<PdfExtractionResult> {
+export async function extractPdfText(filePath: string): Promise<DocumentExtractionResult> {
   const pdfjsLib = await loadPdfjs();
   const fileBuffer = await fs.readFile(filePath);
   const data = new Uint8Array(fileBuffer);
@@ -85,7 +78,7 @@ export async function extractPdfText(filePath: string): Promise<PdfExtractionRes
       text: markedPageTexts.join("\n\n"),
       extractedAt: new Date().toISOString(),
       extractionBackend: EXTRACTION_BACKEND,
-      likelyScanned: isLikelyScanned(characterCount, pageCount),
+      noTextWarning: isLikelyScanned(characterCount, pageCount) ? SCANNED_WARNING : null,
     };
   } finally {
     await loadingTask.destroy();

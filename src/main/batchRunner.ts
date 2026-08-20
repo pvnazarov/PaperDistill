@@ -11,8 +11,8 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { extractPdfText } from "./pdfExtract";
-import type { PdfExtractionResult } from "./pdfExtract";
+import { extractDocumentText } from "./documentExtract";
+import type { DocumentExtractionResult } from "./documentExtract";
 import { buildPrompt } from "./promptBuilder";
 import { splitIntoChunks } from "./chunker";
 import { DEFAULT_SYSTEM_PROMPT } from "./providers/base";
@@ -184,8 +184,8 @@ interface GeneratedMarkdown {
   processingMode: ProcessingMode;
 }
 
-async function generateMarkdownForPdf(
-  extraction: PdfExtractionResult,
+async function generateMarkdownForDocument(
+  extraction: DocumentExtractionResult,
   promptTemplate: string,
   options: StartBatchOptions,
   deps: RunBatchDeps,
@@ -269,7 +269,6 @@ function makeInitialJob(filePath: string): PdfJob {
     processingMode: null,
     outputPath: null,
     errorMessage: null,
-    likelyScanned: false,
   };
 }
 
@@ -308,22 +307,21 @@ export async function runBatch(
     }
 
     try {
-      const extraction = await extractPdfText(filePath);
+      const extraction = await extractDocumentText(filePath);
       job = {
         ...job,
         pageCount: extraction.pageCount,
         characterCount: extraction.characterCount,
-        likelyScanned: extraction.likelyScanned,
       };
 
-      if (extraction.likelyScanned) {
+      if (extraction.noTextWarning) {
         job = {
           ...job,
           status: "warning",
-          errorMessage: "Likely a scanned PDF: little or no extractable text found. Skipped.",
+          errorMessage: extraction.noTextWarning,
         };
       } else {
-        const generated = await generateMarkdownForPdf(
+        const generated = await generateMarkdownForDocument(
           extraction,
           promptTemplate,
           options,
@@ -370,7 +368,7 @@ export async function runBatch(
       const skippedJob: PdfJob = {
         ...makeInitialJob(filePath),
         status: "skipped",
-        errorMessage: "Batch cancelled before this PDF was processed.",
+        errorMessage: "Batch cancelled before this file was processed.",
       };
       deps.onProgress(skippedJob);
       jobs.push(skippedJob);

@@ -2,8 +2,8 @@
   "name": "paperdistill",
   "productName": "PaperDistill",
   "desktopName": "PaperDistill.desktop",
-  "version": "0.1.1",
-  "description": "Batch-convert scientific PDF papers into structured, AI-ready Markdown using local or cloud LLMs.",
+  "version": "0.1.2",
+  "description": "Batch-convert scientific documents (PDF, DOCX, XLSX, TXT, MD) into structured, AI-ready Markdown using local or cloud LLMs.",
   "private": true,
   "main": "dist-electron/main/main.js",
   "author": "",
@@ -22,6 +22,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
     "dotenv": "^17.4.2",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.12.1",
     "openai": "^6.45.0",
     "pdfjs-dist": "^6.1.200",
     "react": "^19.2.7",
@@ -63,7 +65,7 @@
       "icon": "build/icon.png",
       "category": "Science",
       "syncDesktopName": true,
-      "synopsis": "Batch-convert scientific PDFs into structured Markdown",
+      "synopsis": "Batch-convert scientific documents into structured Markdown",
       "target": [
         "AppImage"
       ]

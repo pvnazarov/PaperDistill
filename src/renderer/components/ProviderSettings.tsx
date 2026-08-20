@@ -112,7 +112,7 @@ function ProviderSettings({
             </button>
           )}
           <span className="field-value">
-            PDFs will be processed with {PROVIDER_LABELS[providerName]}.
+            Files will be processed with {PROVIDER_LABELS[providerName]}.
           </span>
         </div>
       </div>

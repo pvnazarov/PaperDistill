@@ -19,7 +19,8 @@ export interface PromptBuilderInput {
   pdfText: string;
   pdfFileName: string;
   pdfPath: string;
-  pageCount: number;
+  /** Null for formats without pages; rendered as "unknown". */
+  pageCount: number | null;
 }
 
 function replaceAll(text: string, search: string, replacement: string): string {
@@ -32,7 +33,11 @@ export function buildPrompt(input: PromptBuilderInput): string {
   let result = input.promptTemplate;
   result = replaceAll(result, PLACEHOLDER_PDF_FILENAME, input.pdfFileName);
   result = replaceAll(result, PLACEHOLDER_PDF_PATH, input.pdfPath);
-  result = replaceAll(result, PLACEHOLDER_PAGE_COUNT, String(input.pageCount));
+  result = replaceAll(
+    result,
+    PLACEHOLDER_PAGE_COUNT,
+    input.pageCount === null ? "unknown" : String(input.pageCount),
+  );
 
   if (hasPdfTextPlaceholder) {
     return replaceAll(result, PLACEHOLDER_PDF_TEXT, input.pdfText);
