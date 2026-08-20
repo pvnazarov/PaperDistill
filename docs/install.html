@@ -21,12 +21,13 @@
 
   Both artefacts live in /release/ on this server:
     PaperDistill-setup-0.1.2.exe   built on Windows, copied here
-    PaperDistill-0.1.1.AppImage    built on this machine with `npx electron-builder --linux`
+    PaperDistill-0.1.2.AppImage    built on this machine with `npx electron-builder --linux`
 
-  THE TWO PLATFORMS ARE ON DIFFERENT VERSIONS. 0.1.2 added DOCX/XLSX/TXT/MD input, and
-  `npm run package` only builds for the platform it runs on, so the Windows installer was
-  refreshed and the AppImage was not. Rebuild the AppImage on Linux and update its row when
-  you want the two to match.
+  BOTH PLATFORMS ARE ON 0.1.2 as of 2026-08-21, so both read DOCX/XLSX/TXT/MD. They can drift
+  again the moment one side is rebuilt: `npm run package` only builds for the platform it runs
+  on, so a Windows-only refresh leaves the AppImage behind (which is exactly what 0.1.2 did for
+  five days). Whenever the versions differ, SAY SO on the page -- a download table that silently
+  offers two different feature sets is worse than one that admits the gap.
 
   Neither is code-signed, which is why the Windows section leads with SmartScreen: an unsigned
   NSIS installer shows "Windows protected your PC", and a user who does not expect that reads it
@@ -76,15 +77,14 @@ write <code>Not found in PDF</code> rather than guess.</p>
   </tr>
   <tr>
     <td><strong>Linux</strong></td>
-    <td><a href="/release/PaperDistill-0.1.1.AppImage">PaperDistill-0.1.1.AppImage</a> — portable, no install</td>
-    <td>0.1.1</td>
-    <td>149 MB</td>
+    <td><a href="/release/PaperDistill-0.1.2.AppImage">PaperDistill-0.1.2.AppImage</a> — portable, no install</td>
+    <td>0.1.2</td>
+    <td>150 MB</td>
   </tr>
 </table>
 
-<p class="sub">The Linux build is still <strong>0.1.1</strong> and therefore <strong>reads PDFs
-only</strong> — DOCX, XLSX, TXT and MD input needs 0.1.2, which so far exists for Windows. On Linux,
-build from source for the newer formats.</p>
+<p class="sub">Both builds are <strong>0.1.2</strong> and read <strong>PDF, DOCX, XLSX, TXT and
+MD</strong>. Neither is code-signed.</p>
 
 <p>Checksums: <a href="/release/SHA256SUMS.txt">SHA256SUMS.txt</a>. Source (private repo — you need
 access): <a href="https://github.com/pvnazarov/PaperDistill">github.com/pvnazarov/PaperDistill</a>.
@@ -133,9 +133,9 @@ and no <code>sudo</code> anywhere. Download it, make it executable, run it:</p>
 
 <div class="copyblock">
   <button type="button" data-copy>Copy</button>
-<pre>curl -O http://LIHW0056/release/PaperDistill-0.1.1.AppImage
-chmod +x PaperDistill-0.1.1.AppImage
-./PaperDistill-0.1.1.AppImage</pre>
+<pre>curl -O http://LIHW0056/release/PaperDistill-0.1.2.AppImage
+chmod +x PaperDistill-0.1.2.AppImage
+./PaperDistill-0.1.2.AppImage</pre>
 </div>
 
 <div class="note">
@@ -145,11 +145,11 @@ common case. Either install the compatibility library, or skip FUSE entirely:
 <div class="copyblock" style="margin-top:10px">
   <button type="button" data-copy>Copy</button>
 <pre>sudo apt install libfuse2          # option 1
-./PaperDistill-0.1.1.AppImage --appimage-extract-and-run   # option 2, no root needed</pre>
+./PaperDistill-0.1.2.AppImage --appimage-extract-and-run   # option 2, no root needed</pre>
 </div>
 </div>
 
-<p>To verify the download: <code>sha256sum PaperDistill-0.1.1.AppImage</code> and compare against
+<p>To verify the download: <code>sha256sum PaperDistill-0.1.2.AppImage</code> and compare against
 <a href="/release/SHA256SUMS.txt">SHA256SUMS.txt</a>.</p>
 
 <h2>Build from source</h2>
@@ -167,8 +167,9 @@ npm test           # 67 tests
 npm run package    # build an installer for the current platform into release/</pre>
 </div>
 
-<p class="sub">Verified on Linux with Node 24 and Node 26 as of 0.1.1: dependencies install, all
-tests pass, and <code>npx electron-builder --linux</code> produces the AppImage offered above. Note that
+<p class="sub">Verified on Linux with Node 24 and Node 26, re-checked at 0.1.2 on 2026-08-21:
+dependencies install, all 67 tests pass, and <code>npx electron-builder --linux</code> produces the
+AppImage offered above. Note that
 <code>npm run package</code> builds for the platform you run it on — the Windows installer has to
 be built on Windows.</p>
 
