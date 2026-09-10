@@ -15,9 +15,12 @@
   from a checkout therefore gives unstyled HTML with dead links — that is expected, not a bug.
   The served copy is the one that matters; edit it there and re-copy, or this will drift.
 
-  The GitHub repo is PRIVATE, so the download links must be the primary route — a colleague
-  without repo access gets a 404 from GitHub and nothing else. The link is still given because
-  it is the source of truth for anyone who does have access.
+  The GitHub repo went PUBLIC (MIT) on 2026-09-10 — checked against the unauthenticated GitHub
+  API, which reports visibility "public", so an anonymous colleague really can clone it.
+
+  The download links stay the primary route, but the reason has changed. It used to be that a
+  colleague without repo access got a 404 and nothing else. Now it is simply that the artefacts
+  are prebuilt: no Node toolchain, no GitHub account, no clone. Access is no longer the gate.
 
   Both artefacts live in /release/ on this server:
     PaperDistill-setup-0.1.2.exe   built on Windows, copied here
@@ -86,9 +89,10 @@ write <code>Not found in PDF</code> rather than guess.</p>
 <p class="sub">Both builds are <strong>0.1.2</strong> and read <strong>PDF, DOCX, XLSX, TXT and
 MD</strong>. Neither is code-signed.</p>
 
-<p>Checksums: <a href="/release/SHA256SUMS.txt">SHA256SUMS.txt</a>. Source (private repo — you need
-access): <a href="https://github.com/pvnazarov/PaperDistill">github.com/pvnazarov/PaperDistill</a>.
-There is no macOS build; on a Mac, build from source.</p>
+<p>Checksums: <a href="/release/SHA256SUMS.txt">SHA256SUMS.txt</a>. Source is
+<strong>public</strong>, under the MIT licence:
+<a href="https://github.com/pvnazarov/PaperDistill">github.com/pvnazarov/PaperDistill</a> — no
+account and no access request needed. There is no macOS build; on a Mac, build from source.</p>
 
 <div class="note">
 <strong>No administrator rights needed, on either platform.</strong> The Windows installer runs as
@@ -154,12 +158,12 @@ common case. Either install the compatibility library, or skip FUSE entirely:
 
 <h2>Build from source</h2>
 
-<p>Needs <strong>Node 20+</strong> and access to the private repository. This is also the route for
-macOS.</p>
+<p>Needs <strong>Node 20+</strong>. The repository is public, so there is nothing to request
+first. This is also the route for macOS.</p>
 
 <div class="copyblock">
   <button type="button" data-copy>Copy</button>
-<pre>git clone git@github.com:pvnazarov/PaperDistill.git
+<pre>git clone https://github.com/pvnazarov/PaperDistill.git
 cd PaperDistill
 npm install
 npm run dev        # run it
